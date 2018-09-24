@@ -1,8 +1,3 @@
 # friendlychat
 
-A new Flutter project.
-
-## Getting Started
-
-For help getting started with Flutter, view our online
-[documentation](https://flutter.io/).
+A demo Flutter project ["Building Beautiful UIs with Flutter"](https://codelabs.developers.google.com/codelabs/flutter/index.html)
