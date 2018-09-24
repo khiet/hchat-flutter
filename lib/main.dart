@@ -13,7 +13,9 @@ class FriendlychatApp extends StatelessWidget {
     return MaterialApp(
       title: "Friendlychat",
       theme: getAdaptiveThemeData(context),
-      home: ChatPage(),
+      routes: {
+        '/': (BuildContext context) => ChatPage(),
+      },
     );
   }
 }
