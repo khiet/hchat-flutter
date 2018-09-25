@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/chat_message.dart';
 import '../widgets/chat_input.dart';
 
+import '../globals/usernames.dart';
+
 class ChatPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -16,7 +18,7 @@ class ChatPage extends StatefulWidget {
 class ChatPageState extends State<ChatPage> {
   ChatInput _chatInput;
   Widget _chatMessageList;
-  String _username = (['マンモス', 'カエル']..shuffle()).first;
+  String _username = (usernames..shuffle()).first;
 
   void chatInputHandler(String text) {
     Firestore.instance.runTransaction((transaction) async {
