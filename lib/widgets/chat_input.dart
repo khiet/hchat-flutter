@@ -15,7 +15,7 @@ class ChatInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('build inside ChatInput');
+    print('[ChatInput]');
     return IconTheme(
       data: IconThemeData(
         color: Theme.of(context).accentColor,
