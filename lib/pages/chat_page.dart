@@ -38,7 +38,7 @@ class ChatPageState extends State<ChatPage> {
 
   void chatInputHandler(String text) {
     Firestore.instance.runTransaction((transaction) async {
-      Firestore.instance.collection('chats').add({'chat': text});
+      Firestore.instance.collection('chats').document().setData({'chat': text});
     });
   }
 
