@@ -1,10 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+
+import 'package:image_picker/image_picker.dart';
 
 import 'chat_input.dart';
 
 class MainInput extends StatefulWidget {
-  MainInput({this.chatInputHandler});
+  MainInput({this.chatInputHandler, this.imageHandler});
   final Function chatInputHandler;
+  final Function imageHandler;
 
   @override
   State<StatefulWidget> createState() {
@@ -13,6 +17,8 @@ class MainInput extends StatefulWidget {
 }
 
 class MainInputState extends State<MainInput> {
+  final double maxImageWidth = 400.0;
+
   ChatInput _chatInput;
 
   @override
@@ -26,8 +32,13 @@ class MainInputState extends State<MainInput> {
     print('[bringUpCamera]');
   }
 
-  void bringUpGallery() {
+  Future bringUpGallery() async {
     print('[bringUpGallery]');
+
+    File image = await ImagePicker.pickImage(
+        source: ImageSource.gallery, maxWidth: maxImageWidth);
+
+    widget.imageHandler(image);
   }
 
   @override

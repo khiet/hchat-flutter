@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -23,6 +24,7 @@ class ChatPageState extends State<ChatPage> {
   List<ChatMessage> _messages = [];
   StreamSubscription<QuerySnapshot> _subscription;
   MainInput _mainInput;
+  Image _previewImage;
 
   void chatStreamHandler(QuerySnapshot snapshot) {
     final List<ChatMessage> newMessages = [];
@@ -42,6 +44,20 @@ class ChatPageState extends State<ChatPage> {
     });
   }
 
+  void imageHandler(File image) {
+    Image previewImage = Image.file(
+      image,
+      fit: BoxFit.cover,
+      alignment: Alignment.center,
+      height: 200.0,
+      width: MediaQuery.of(context).size.width,
+    );
+
+    setState(() {
+      _previewImage = previewImage;
+    });
+  }
+
   @override
   void dispose() {
     _subscription.cancel();
@@ -56,7 +72,8 @@ class ChatPageState extends State<ChatPage> {
         .snapshots()
         .listen(chatStreamHandler);
 
-    _mainInput = MainInput(chatInputHandler: chatInputHandler);
+    _mainInput = MainInput(
+        chatInputHandler: chatInputHandler, imageHandler: imageHandler);
   }
 
   @override
@@ -87,6 +104,7 @@ class ChatPageState extends State<ChatPage> {
                 itemCount: _messages.length,
               ),
             ),
+            _previewImage != null ? _previewImage : Container(),
             Divider(height: 1.0),
             Container(
               decoration: BoxDecoration(color: Theme.of(context).cardColor),
