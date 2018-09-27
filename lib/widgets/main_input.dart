@@ -28,15 +28,11 @@ class MainInputState extends State<MainInput> {
     _chatInput = ChatInput(onSubmitted: widget.chatInputHandler);
   }
 
-  void bringUpCamera() {
-    print('[bringUpCamera]');
-  }
-
-  Future bringUpGallery() async {
-    print('[bringUpGallery]');
-
+  Future<void> pickImage(ImageSource source) async {
     File image = await ImagePicker.pickImage(
-        source: ImageSource.gallery, maxWidth: maxImageWidth);
+      source: source,
+      maxWidth: maxImageWidth,
+    );
 
     widget.imageHandler(image);
   }
@@ -48,13 +44,13 @@ class MainInputState extends State<MainInput> {
         IconButton(
           icon: Icon(Icons.camera_alt),
           onPressed: () {
-            bringUpCamera();
+            pickImage(ImageSource.camera);
           },
         ),
         IconButton(
           icon: Icon(Icons.image),
           onPressed: () {
-            bringUpGallery();
+            pickImage(ImageSource.gallery);
           },
         ),
         Flexible(
