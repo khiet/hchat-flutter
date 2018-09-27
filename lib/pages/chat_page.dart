@@ -6,7 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../widgets/chat_message.dart';
-import '../widgets/chat_input.dart';
+import '../widgets/main_input.dart';
 
 import '../globals/usernames.dart';
 
@@ -22,7 +22,7 @@ class ChatPageState extends State<ChatPage> {
 
   List<ChatMessage> _messages = [];
   StreamSubscription<QuerySnapshot> _subscription;
-  ChatInput _chatInput;
+  MainInput _mainInput;
 
   void chatStreamHandler(QuerySnapshot snapshot) {
     final List<ChatMessage> newMessages = [];
@@ -56,7 +56,7 @@ class ChatPageState extends State<ChatPage> {
         .snapshots()
         .listen(chatStreamHandler);
 
-    _chatInput = ChatInput(onSubmitted: chatInputHandler);
+    _mainInput = MainInput(chatInputHandler: chatInputHandler);
   }
 
   @override
@@ -90,7 +90,7 @@ class ChatPageState extends State<ChatPage> {
             Divider(height: 1.0),
             Container(
               decoration: BoxDecoration(color: Theme.of(context).cardColor),
-              child: _chatInput,
+              child: _mainInput,
             ),
           ],
         ),
