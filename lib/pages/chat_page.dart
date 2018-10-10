@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart';
 
 import '../widgets/chat_message.dart';
 import '../widgets/main_input.dart';
@@ -44,7 +48,7 @@ class ChatPageState extends State<ChatPage> {
     });
   }
 
-  void imageHandler(File image) {
+  Future<void> imageHandler(File image) async {
     Image previewImage = Image.file(
       image,
       fit: BoxFit.cover,
@@ -53,9 +57,51 @@ class ChatPageState extends State<ChatPage> {
       width: MediaQuery.of(context).size.width,
     );
 
+    final Map<String, dynamic> uploadedData = await uploadImage(image);
+
     setState(() {
       _previewImage = previewImage;
     });
+  }
+
+  Future<Map<String, dynamic>> uploadImage(File image,
+      {String imagePath}) async {
+    final List<String> mimeTypeData = lookupMimeType(image.path).split('/');
+    final file = await http.MultipartFile.fromPath(
+      'image',
+      image.path,
+      contentType: MediaType(
+        mimeTypeData[0],
+        mimeTypeData[1],
+      ),
+    );
+    final http.MultipartRequest imageUploadRequest = http.MultipartRequest(
+      'POST',
+      Uri.parse(
+        'https://us-central1-hchat-app.cloudfunctions.net/storeImage',
+      ),
+    );
+
+    imageUploadRequest.files.add(file);
+    if (imagePath != null) {
+      imageUploadRequest.fields['imagePath'] = Uri.encodeComponent(imagePath);
+    }
+
+    try {
+      final http.StreamedResponse streamedResponse =
+          await imageUploadRequest.send();
+      final http.Response response =
+          await http.Response.fromStream(streamedResponse);
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        return null;
+      } else {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        return responseData;
+      }
+    } catch (error) {
+      print(error);
+      return null;
+    }
   }
 
   @override
