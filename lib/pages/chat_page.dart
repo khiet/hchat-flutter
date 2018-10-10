@@ -28,13 +28,12 @@ class ChatPageState extends State<ChatPage> {
   List<ChatMessage> _messages = [];
   StreamSubscription<QuerySnapshot> _subscription;
   MainInput _mainInput;
-  Image _previewImage;
 
   void chatStreamHandler(QuerySnapshot snapshot) {
     final List<ChatMessage> newMessages = [];
     for (DocumentSnapshot document in snapshot.documents) {
       newMessages.insert(
-          0, ChatMessage(text: document['chat'], username: _username));
+          0, ChatMessage(text: document['text'], username: _username));
     }
 
     setState(() {
@@ -44,28 +43,21 @@ class ChatPageState extends State<ChatPage> {
 
   void chatInputHandler(String text) {
     Firestore.instance.runTransaction((transaction) async {
-      Firestore.instance.collection('chats').document().setData({'chat': text});
+      Firestore.instance.collection('chats').document().setData({'text': text});
     });
   }
 
-  Future<void> imageHandler(File image) async {
-    Image previewImage = Image.file(
-      image,
-      fit: BoxFit.cover,
-      alignment: Alignment.center,
-      height: 200.0,
-      width: MediaQuery.of(context).size.width,
-    );
-
+  void imageHandler(File image) async {
     final Map<String, dynamic> uploadedData = await uploadImage(image);
-
-    setState(() {
-      _previewImage = previewImage;
+    Firestore.instance.runTransaction((transaction) async {
+      Firestore.instance
+          .collection('chats')
+          .document()
+          .setData({'imageUrl': uploadedData['imageUrl']});
     });
   }
 
-  Future<Map<String, dynamic>> uploadImage(File image,
-      {String imagePath}) async {
+  Future<Map<String, dynamic>> uploadImage(File image) async {
     final List<String> mimeTypeData = lookupMimeType(image.path).split('/');
     final file = await http.MultipartFile.fromPath(
       'image',
@@ -83,9 +75,6 @@ class ChatPageState extends State<ChatPage> {
     );
 
     imageUploadRequest.files.add(file);
-    if (imagePath != null) {
-      imageUploadRequest.fields['imagePath'] = Uri.encodeComponent(imagePath);
-    }
 
     try {
       final http.StreamedResponse streamedResponse =
@@ -150,7 +139,6 @@ class ChatPageState extends State<ChatPage> {
                 itemCount: _messages.length,
               ),
             ),
-            _previewImage != null ? _previewImage : Container(),
             Divider(height: 1.0),
             Container(
               decoration: BoxDecoration(color: Theme.of(context).cardColor),
