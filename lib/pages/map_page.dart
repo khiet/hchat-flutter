@@ -10,46 +10,38 @@ class MapPage extends StatefulWidget {
 
 class MapPageState extends State<MapPage> {
   GoogleMapController mapController;
+  // London
+  final LatLng center = LatLng(51.507351, -0.127758);
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(15.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Center(
-            child: SizedBox(
-              width: 300.0,
-              height: 200.0,
-              child: GoogleMap(
-                onMapCreated: _onMapCreated,
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: GoogleMap(
+            onMapCreated: _onMapCreated,
+            options: GoogleMapOptions(
+              scrollGesturesEnabled: true,
+              zoomGesturesEnabled: true,
+              cameraPosition: CameraPosition(
+                target: center,
+                zoom: 11.0,
               ),
             ),
           ),
-          RaisedButton(
-            child: const Text('Go to London'),
-            onPressed: mapController == null
-                ? null
-                : () {
-                    mapController.animateCamera(CameraUpdate.newCameraPosition(
-                      const CameraPosition(
-                        bearing: 270.0,
-                        target: LatLng(51.5160895, -0.1294527),
-                        tilt: 30.0,
-                        zoom: 17.0,
-                      ),
-                    ));
-                  },
-          ),
-        ],
+        ),
       ),
     );
   }
 
   void _onMapCreated(GoogleMapController controller) {
-    setState(() {
-      mapController = controller;
-    });
+    mapController = controller;
+
+    mapController.addMarker(
+      MarkerOptions(
+        position: center,
+        infoWindowText: InfoWindowText('TITLE', 'SNIPPET'),
+      ),
+    );
   }
 }
