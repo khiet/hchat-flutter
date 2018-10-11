@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 class ChatMessage extends StatelessWidget {
-  ChatMessage({this.message, this.username});
+  ChatMessage({this.message, this.username, this.sentAt});
   final Widget message;
   final String username;
+  final DateTime sentAt;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +21,17 @@ class ChatMessage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(username, style: Theme.of(context).textTheme.subhead),
+                Text(
+                  username,
+                  style: Theme.of(context).textTheme.subhead,
+                ),
+                Container(
+                  margin: EdgeInsets.only(top: 10.0),
+                  child: Text(
+                    sentAt.toIso8601String(),
+                    style: TextStyle(fontSize: 12.0),
+                  ),
+                ),
                 Container(
                   margin: EdgeInsets.only(top: 10.0),
                   child: message,
