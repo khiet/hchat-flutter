@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'pages/chat_page.dart';
+import 'pages/main_page.dart';
 import 'shared/adaptive_theme.dart';
 
 void main() {
@@ -14,7 +14,7 @@ class FriendlychatApp extends StatelessWidget {
       title: "Friendlychat",
       theme: getAdaptiveThemeData(context),
       routes: {
-        '/': (BuildContext context) => ChatPage(),
+        '/': (BuildContext context) => MainPage(),
       },
     );
   }
