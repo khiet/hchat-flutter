@@ -3,7 +3,7 @@ import './chat_page.dart';
 import './map_page.dart';
 
 class MainPage extends StatelessWidget {
-  final PageController controller = PageController(initialPage: 1);
+  final PageController controller = PageController(initialPage: 0);
 
   @override
   Widget build(BuildContext context) {

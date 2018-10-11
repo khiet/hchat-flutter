@@ -75,3 +75,5 @@ build/
 
 functions/node_modules/
 functions/hchat-app-firebase-adminsdk.json
+
+**/android/app/src/main/AndroidManifest.xml
