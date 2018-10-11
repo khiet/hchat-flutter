@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ChatMessage extends StatelessWidget {
-  ChatMessage({this.text, this.username});
-  final String text;
+  ChatMessage({this.message, this.username});
+  final Widget message;
   final String username;
 
   @override
@@ -13,7 +13,7 @@ class ChatMessage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Container(
-            margin: EdgeInsets.only(right: 16.0),
+            margin: EdgeInsets.only(right: 15.0),
             child: CircleAvatar(child: Text(username[0])),
           ),
           Expanded(
@@ -22,8 +22,8 @@ class ChatMessage extends StatelessWidget {
               children: <Widget>[
                 Text(username, style: Theme.of(context).textTheme.subhead),
                 Container(
-                  margin: EdgeInsets.only(top: 5.0),
-                  child: Text(text),
+                  margin: EdgeInsets.only(top: 10.0),
+                  child: message,
                 ),
               ],
             ),

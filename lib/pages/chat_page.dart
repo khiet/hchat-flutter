@@ -11,6 +11,8 @@ import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 
 import '../widgets/chat_message.dart';
+import '../widgets/chat_text.dart';
+import '../widgets/chat_image.dart';
 import '../widgets/main_input.dart';
 
 import '../globals/usernames.dart';
@@ -32,8 +34,17 @@ class ChatPageState extends State<ChatPage> {
   void chatStreamHandler(QuerySnapshot snapshot) {
     final List<ChatMessage> newMessages = [];
     for (DocumentSnapshot document in snapshot.documents) {
+      final Widget message = (document['imageUrl'] != null)
+          ? ChatImage(imageUrl: document['imageUrl'])
+          : ChatText(text: document['text']);
+
       newMessages.insert(
-          0, ChatMessage(text: document['text'], username: _username));
+        0,
+        ChatMessage(
+          message: message,
+          username: _username,
+        ),
+      );
     }
 
     setState(() {
