@@ -55,19 +55,23 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void chatInputHandler(String text) {
-    Firestore.instance.runTransaction((transaction) async {
-      Firestore.instance
-          .collection('chats')
-          .document()
-          .setData({'text': text, 'sent_at': DateTime.now()});
-    });
+    setDataFirestore({'text': text});
   }
 
   void imageHandler(File image) async {
     final Map<String, dynamic> uploadedData = await uploadImage(image);
+    setDataFirestore({'imageUrl': uploadedData['imageUrl']});
+  }
+
+  void setDataFirestore(Map<String, dynamic> data) {
+    Map<String, dynamic> defaultData = {
+      'sent_at': DateTime.now(),
+      'room_id': _username,
+    };
+    defaultData.addAll(data);
+
     Firestore.instance.runTransaction((transaction) async {
-      Firestore.instance.collection('chats').document().setData(
-          {'imageUrl': uploadedData['imageUrl'], 'sent_at': DateTime.now()});
+      Firestore.instance.collection('chats').document().setData(defaultData);
     });
   }
 
