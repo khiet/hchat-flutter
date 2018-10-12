@@ -11,7 +11,7 @@ class FriendlychatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "Friendlychat",
+      title: "HChat",
       theme: getAdaptiveThemeData(context),
       routes: {
         '/': (BuildContext context) => MainPage(),

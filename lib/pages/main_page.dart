@@ -11,7 +11,9 @@ class MainPage extends StatelessWidget {
     return PageView(
       controller: controller,
       children: <Widget>[
-        HomePage(),
+        HomePage(
+          pageController: controller,
+        ),
         ChatPage(),
         MapPage(),
       ],

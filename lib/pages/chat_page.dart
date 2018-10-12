@@ -65,7 +65,7 @@ class ChatPageState extends State<ChatPage> {
 
   void setDataFirestore(Map<String, dynamic> data) {
     Map<String, dynamic> defaultData = {
-      'sent_at': DateTime.now(),
+      'created_at': DateTime.now(),
       'room_id': _username,
     };
     defaultData.addAll(data);
@@ -163,7 +163,7 @@ class ChatPageState extends State<ChatPage> {
     print('[ChatPage]');
     return Scaffold(
       appBar: AppBar(
-        title: Text("Friendlychat"),
+        title: Text("HChat"),
         elevation: Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
       ),
       body: Container(
