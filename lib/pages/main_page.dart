@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import './home_page.dart';
 import './chat_page.dart';
 import './map_page.dart';
 
@@ -10,6 +11,7 @@ class MainPage extends StatelessWidget {
     return PageView(
       controller: controller,
       children: <Widget>[
+        HomePage(),
         ChatPage(),
         MapPage(),
       ],
