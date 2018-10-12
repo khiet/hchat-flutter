@@ -30,6 +30,8 @@
   <string>Accessing photos for an image upload.</string>
   <key>NSCameraUsageDescription</key>
   <string>Accessing camera for an image upload.</string>
+  <key>NSLocationWhenInUseUsageDescription</key>
+	<string>User location is required to find nearest users.</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

@@ -10,8 +10,8 @@ class MainPage extends StatelessWidget {
     return PageView(
       controller: controller,
       children: <Widget>[
-        MapPage(),
         ChatPage(),
+        MapPage(),
       ],
     );
   }

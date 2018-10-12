@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:location/location.dart' as geoloc;
 
 import '../widgets/chat_message.dart';
 import '../widgets/chat_text.dart';
@@ -106,6 +107,33 @@ class ChatPageState extends State<ChatPage> {
     }
   }
 
+  void setUserLocation() async {
+    final geoloc.Location location = geoloc.Location();
+    try {
+      final Map<String, double> currentLocation = await location.getLocation();
+      print(
+        '[currentLocation] ${currentLocation['latitude']} ${currentLocation['longitude']}',
+      );
+    } catch (error) {
+      print('ERROR: ' + error);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('LOCATION UNAVAILABLE'),
+            content: Text('CANNOT FETCH LOCATION'),
+            actions: <Widget>[
+              FlatButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('OK'),
+              )
+            ],
+          );
+        },
+      );
+    }
+  }
+
   @override
   void dispose() {
     _subscription.cancel();
@@ -115,6 +143,8 @@ class ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+
+    setUserLocation();
     _subscription = Firestore.instance
         .collection('chats')
         .snapshots()

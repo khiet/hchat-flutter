@@ -23,6 +23,7 @@ dependencies:
   cloud_firestore: ^0.8.0
   image_picker: ^0.4.10
   mime: ^0.9.6+2
+  location: ^1.4.1
   google_maps_flutter:
     git:
      url: git://github.com/flutter/plugins
