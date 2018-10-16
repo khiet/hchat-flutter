@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
@@ -17,26 +16,15 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  StreamSubscription<QuerySnapshot> _subscription;
   Widget activityIndicator;
-  String user_id;
-
-  void roomStreamHandler(QuerySnapshot snapshot) {
-    print('[roomStreamHandler] $snapshot');
-  }
+  String userID;
+  String roomID;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
-    user_id = Uuid().v4();
-  }
-
-  @override
-  void dispose() {
-    _subscription.cancel();
-    super.dispose();
+    userID = Uuid().v4();
   }
 
   @override
@@ -61,19 +49,6 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  void _createRoom() {
-    Map<String, dynamic> data = {
-      'active': false,
-      'connected': false,
-      'user_id': user_id,
-      'created_at': DateTime.now()
-    };
-
-    Firestore.instance.runTransaction((transaction) async {
-      Firestore.instance.collection('rooms').document().setData(data);
-    });
-  }
-
   void _showActivityIndicator(String text) {
     setState(() {
       activityIndicator = Column(
@@ -89,34 +64,57 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  void _findUser() {
+  void _hideActivityIndicator() {
+    setState(() {
+      activityIndicator = null;
+    });
+  }
+
+  void _findUser() async {
     _showActivityIndicator('Looking for a user...');
 
-    _subscription = Firestore.instance
+    QuerySnapshot querySnapshot = await Firestore.instance
         .collection('rooms')
         .where('active', isEqualTo: false)
         .where('connected', isEqualTo: false)
-        .snapshots()
-        .listen(_roomAssignmentHandler);
+        .getDocuments();
+
+    if (querySnapshot.documents.length > 0) {
+      DocumentSnapshot documentSnapshot = querySnapshot.documents.first;
+      roomID = documentSnapshot.documentID;
+
+      Map<String, dynamic> data = {'active': true, 'connected': true};
+      await documentSnapshot.reference.updateData(data);
+
+      print('[JOINED] $roomID');
+      _hideActivityIndicator();
+      goToChatPage();
+    } else {
+      Map<String, dynamic> data = {
+        'active': false,
+        'connected': false,
+        'userId': userID,
+        'created_at': DateTime.now()
+      };
+      DocumentReference documentReference =
+          await Firestore.instance.collection('rooms').add(data);
+
+      roomID = documentReference.documentID;
+      print('[CREATED] $roomID');
+
+      documentReference.snapshots().listen((DocumentSnapshot snapshot) {
+        _hideActivityIndicator();
+        goToChatPage();
+      });
+      _showActivityIndicator('Waiting for a user to join...');
+    }
   }
 
-  void _roomAssignmentHandler(QuerySnapshot openRoom) {
-    if (openRoom.documents.isEmpty) {
-      print('[_createRoom]');
-      _createRoom();
-    } else {
-      openRoom.documents.forEach((room) {
-        if (room['user_id'] != user_id) {
-          print('[JOIN]');
-          widget.pageController.animateToPage(
-            1,
-            duration: Duration(milliseconds: 400),
-            curve: Curves.easeInOut,
-          );
-        } else {
-          _showActivityIndicator('Waiting for a user to join...');
-        }
-      });
-    }
+  void goToChatPage() {
+    widget.pageController.animateToPage(
+      1,
+      duration: Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
   }
 }
