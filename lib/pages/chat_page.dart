@@ -19,6 +19,10 @@ import '../widgets/main_input.dart';
 import '../globals/usernames.dart';
 
 class ChatPage extends StatefulWidget {
+  final String roomID;
+
+  ChatPage({this.roomID});
+
   @override
   State<StatefulWidget> createState() {
     return ChatPageState();
@@ -70,9 +74,7 @@ class ChatPageState extends State<ChatPage> {
     };
     defaultData.addAll(data);
 
-    Firestore.instance.runTransaction((transaction) async {
-      Firestore.instance.collection('chats').document().setData(defaultData);
-    });
+    Firestore.instance.collection('chats').document().setData(defaultData);
   }
 
   Future<Map<String, dynamic>> uploadImage(File image) async {
@@ -140,12 +142,14 @@ class ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
+    print('[dispose (ChatPage)]');
     _subscription.cancel();
     super.dispose();
   }
 
   @override
   void initState() {
+    print('[initState (ChatPage)]');
     super.initState();
 
     setUserLocation();
@@ -155,15 +159,21 @@ class ChatPageState extends State<ChatPage> {
         .listen(chatStreamHandler);
 
     _mainInput = MainInput(
-        chatInputHandler: chatInputHandler, imageHandler: imageHandler);
+      chatInputHandler: chatInputHandler,
+      imageHandler: imageHandler,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    print('[ChatPage]');
+    print('[build (ChatPage)]');
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("HChat"),
+        title: Text(
+          "HChat: ${widget.roomID}",
+          style: Theme.of(context).textTheme.subhead,
+        ),
         elevation: Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
       ),
       body: Container(

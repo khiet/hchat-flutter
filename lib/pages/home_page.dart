@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
+import './chat_page.dart';
+
 import '../shared/adaptive_activity_indicator.dart';
 
 class HomePage extends StatefulWidget {
@@ -111,10 +113,10 @@ class HomePageState extends State<HomePage> {
   }
 
   void goToChatPage() {
-    widget.pageController.animateToPage(
-      1,
-      duration: Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (BuildContext context) => ChatPage(roomID: roomID),
+      ),
     );
   }
 }
