@@ -84,6 +84,15 @@ class ChatPageState extends State<ChatPage> {
         .add(defaultData);
   }
 
+  void leaveRoom() {
+    Map<String, dynamic> data = {'active': false};
+
+    Firestore.instance
+        .collection('rooms')
+        .document(widget.roomID)
+        .updateData(data);
+  }
+
   Future<Map<String, dynamic>> uploadImage(File image) async {
     final List<String> mimeTypeData = lookupMimeType(image.path).split('/');
     final file = await http.MultipartFile.fromPath(
@@ -177,40 +186,48 @@ class ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     print('[build (ChatPage)]');
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "HChat: ${widget.roomID}",
-          style: Theme.of(context).textTheme.subhead,
+    return WillPopScope(
+      onWillPop: () {
+        leaveRoom();
+        Navigator.of(context).pop();
+        return Future.value(false);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            "HChat: ${widget.roomID}",
+            style: Theme.of(context).textTheme.subhead,
+          ),
+          elevation:
+              Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
         ),
-        elevation: Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
-      ),
-      body: Container(
-        decoration: Theme.of(context).platform == TargetPlatform.iOS
-            ? BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: Colors.grey[200]),
+        body: Container(
+          decoration: Theme.of(context).platform == TargetPlatform.iOS
+              ? BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: Colors.grey[200]),
+                  ),
+                )
+              : null,
+          child: Column(
+            children: <Widget>[
+              Flexible(
+                child: ListView.builder(
+                  padding: EdgeInsets.all(8.0),
+                  reverse: true,
+                  itemBuilder: (_, int index) {
+                    return _messages[index];
+                  },
+                  itemCount: _messages.length,
                 ),
-              )
-            : null,
-        child: Column(
-          children: <Widget>[
-            Flexible(
-              child: ListView.builder(
-                padding: EdgeInsets.all(8.0),
-                reverse: true,
-                itemBuilder: (_, int index) {
-                  return _messages[index];
-                },
-                itemCount: _messages.length,
               ),
-            ),
-            Divider(height: 1.0),
-            Container(
-              decoration: BoxDecoration(color: Theme.of(context).cardColor),
-              child: _mainInput,
-            ),
-          ],
+              Divider(height: 1.0),
+              Container(
+                decoration: BoxDecoration(color: Theme.of(context).cardColor),
+                child: _mainInput,
+              ),
+            ],
+          ),
         ),
       ),
     );
