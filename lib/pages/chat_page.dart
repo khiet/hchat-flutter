@@ -37,18 +37,22 @@ class ChatPageState extends State<ChatPage> {
   MainInput _mainInput;
 
   void chatStreamHandler(QuerySnapshot snapshot) {
+    // snapshot.documents.forEach((DocumentSnapshot document) {
+    //   print('[chatStreamHandler] ${document.data}');
+    // });
+
     final List<ChatMessage> newMessages = [];
     for (DocumentSnapshot document in snapshot.documents) {
-      final Widget message = (document['imageUrl'] != null)
-          ? ChatImage(imageUrl: document['imageUrl'])
-          : ChatText(text: document['text']);
+      final Widget message = (document.data['imageUrl'] != null)
+          ? ChatImage(imageUrl: document.data['imageUrl'])
+          : ChatText(text: document.data['text']);
 
       newMessages.insert(
         0,
         ChatMessage(
           message: message,
           username: _username,
-          sentAt: document['sent_at'],
+          sentAt: document.data['created_at'],
         ),
       );
     }
@@ -70,11 +74,14 @@ class ChatPageState extends State<ChatPage> {
   void setDataFirestore(Map<String, dynamic> data) {
     Map<String, dynamic> defaultData = {
       'created_at': DateTime.now(),
-      'room_id': _username,
     };
     defaultData.addAll(data);
 
-    Firestore.instance.collection('chats').document().setData(defaultData);
+    Firestore.instance
+        .collection('rooms')
+        .document(widget.roomID)
+        .collection('chats')
+        .add(defaultData);
   }
 
   Future<Map<String, dynamic>> uploadImage(File image) async {
@@ -154,6 +161,8 @@ class ChatPageState extends State<ChatPage> {
 
     setUserLocation();
     _subscription = Firestore.instance
+        .collection('rooms')
+        .document(widget.roomID)
         .collection('chats')
         .snapshots()
         .listen(chatStreamHandler);

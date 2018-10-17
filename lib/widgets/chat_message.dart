@@ -8,6 +8,7 @@ class ChatMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('[build (ChatMessage)] $message $username $sentAt');
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10.0),
       child: Row(

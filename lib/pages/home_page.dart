@@ -81,7 +81,16 @@ class HomePageState extends State<HomePage> {
         .where('connected', isEqualTo: false)
         .getDocuments();
 
+    DocumentSnapshot availableRoom;
     if (querySnapshot.documents.length > 0) {
+      availableRoom = querySnapshot.documents
+          .firstWhere((DocumentSnapshot documentSnapshot) {
+        return documentSnapshot.data['userID'] != userID;
+      });
+    }
+
+    print('[availableRoom] $availableRoom');
+    if (availableRoom != null) {
       DocumentSnapshot documentSnapshot = querySnapshot.documents.first;
       roomID = documentSnapshot.documentID;
 
@@ -105,8 +114,12 @@ class HomePageState extends State<HomePage> {
       print('[CREATED] $roomID');
 
       documentReference.snapshots().listen((DocumentSnapshot snapshot) {
-        _hideActivityIndicator();
-        goToChatPage();
+        if (snapshot.data != null &&
+            snapshot.data['active'] == true &&
+            snapshot.data['connected'] == true) {
+          _hideActivityIndicator();
+          goToChatPage();
+        }
       });
       _showActivityIndicator('Waiting for a user to join...');
     }
