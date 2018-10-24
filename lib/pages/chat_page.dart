@@ -52,7 +52,7 @@ class ChatPageState extends State<ChatPage> {
         ChatMessage(
           message: message,
           username: _username,
-          sentAt: document.data['created_at'],
+          sentAt: document.data['createdAt'],
         ),
       );
     }
@@ -73,7 +73,7 @@ class ChatPageState extends State<ChatPage> {
 
   void setDataFirestore(Map<String, dynamic> data) {
     Map<String, dynamic> defaultData = {
-      'created_at': DateTime.now(),
+      'createdAt': DateTime.now(),
     };
     defaultData.addAll(data);
 

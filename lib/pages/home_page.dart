@@ -77,7 +77,6 @@ class HomePageState extends State<HomePage> {
 
     QuerySnapshot querySnapshot = await Firestore.instance
         .collection('rooms')
-        .where('active', isEqualTo: false)
         .where('connected', isEqualTo: false)
         .getDocuments();
 
@@ -89,34 +88,38 @@ class HomePageState extends State<HomePage> {
       });
     }
 
-    print('[availableRoom] $availableRoom');
     if (availableRoom != null) {
       DocumentSnapshot documentSnapshot = querySnapshot.documents.first;
       roomID = documentSnapshot.documentID;
 
-      Map<String, dynamic> data = {'active': true, 'connected': true};
-      await documentSnapshot.reference.updateData(data);
+      await documentSnapshot.reference.updateData({'connected': true});
+      await documentSnapshot.reference
+          .collection('users')
+          .document(userID)
+          .setData({'username': userID, 'left': false});
 
-      print('[JOINED] $roomID');
+      print('[JOINED ROOM] $roomID');
       _hideActivityIndicator();
       goToChatPage();
     } else {
       Map<String, dynamic> data = {
-        'active': false,
         'connected': false,
-        'userId': userID,
-        'created_at': DateTime.now()
+        'userID': userID,
+        'createdAt': DateTime.now()
       };
       DocumentReference documentReference =
           await Firestore.instance.collection('rooms').add(data);
 
+      await documentReference
+          .collection('users')
+          .document(userID)
+          .setData({'username': userID, 'left': false});
+
       roomID = documentReference.documentID;
-      print('[CREATED] $roomID');
+      print('[CREATED ROOM] $roomID');
 
       documentReference.snapshots().listen((DocumentSnapshot snapshot) {
-        if (snapshot.data != null &&
-            snapshot.data['active'] == true &&
-            snapshot.data['connected'] == true) {
+        if (snapshot.data['connected']) {
           _hideActivityIndicator();
           goToChatPage();
         }
