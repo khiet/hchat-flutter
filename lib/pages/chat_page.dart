@@ -20,8 +20,9 @@ import '../globals/usernames.dart';
 
 class ChatPage extends StatefulWidget {
   final String roomID;
+  final String userID;
 
-  ChatPage({this.roomID});
+  ChatPage({this.roomID, this.userID});
 
   @override
   State<StatefulWidget> createState() {
@@ -33,8 +34,10 @@ class ChatPageState extends State<ChatPage> {
   final String _username = (usernames..shuffle()).first;
 
   List<ChatMessage> _messages = [];
-  StreamSubscription<QuerySnapshot> _subscription;
+  StreamSubscription<QuerySnapshot> _chastSubscription;
+  StreamSubscription<QuerySnapshot> _roomUserSubscription;
   MainInput _mainInput;
+  String partnerUsername;
 
   void chatStreamHandler(QuerySnapshot snapshot) {
     // snapshot.documents.forEach((DocumentSnapshot document) {
@@ -69,6 +72,26 @@ class ChatPageState extends State<ChatPage> {
   void imageHandler(File image) async {
     final Map<String, dynamic> uploadedData = await uploadImage(image);
     setDataFirestore({'imageUrl': uploadedData['imageUrl']});
+  }
+
+  void roomUserStreamHandler(QuerySnapshot snapshot) {
+    snapshot.documents.forEach((DocumentSnapshot document) {
+      print('[roomUserStreamHandler] ${document.data}');
+    });
+
+    snapshot.documentChanges.forEach((DocumentChange documentChange) {
+      Map<String, dynamic> changedData = documentChange.document.data;
+      print(
+        '[roomUserStreamHandler (documentChange)] $changedData',
+      );
+
+      if (changedData['left'] == true &&
+          changedData['username'] != widget.userID) {
+        setState(() {
+          partnerUsername = changedData['username'];
+        });
+      }
+    });
   }
 
   void setDataFirestore(Map<String, dynamic> data) {
@@ -159,7 +182,8 @@ class ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     print('[dispose (ChatPage)]');
-    _subscription.cancel();
+    _chastSubscription.cancel();
+    _roomUserSubscription.cancel();
     super.dispose();
   }
 
@@ -169,12 +193,19 @@ class ChatPageState extends State<ChatPage> {
     super.initState();
 
     setUserLocation();
-    _subscription = Firestore.instance
+    _chastSubscription = Firestore.instance
         .collection('rooms')
         .document(widget.roomID)
         .collection('chats')
         .snapshots()
         .listen(chatStreamHandler);
+
+    _roomUserSubscription = Firestore.instance
+        .collection('rooms')
+        .document(widget.roomID)
+        .collection('users')
+        .snapshots()
+        .listen(roomUserStreamHandler);
 
     _mainInput = MainInput(
       chatInputHandler: chatInputHandler,
@@ -201,34 +232,44 @@ class ChatPageState extends State<ChatPage> {
           elevation:
               Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
         ),
-        body: Container(
-          decoration: Theme.of(context).platform == TargetPlatform.iOS
-              ? BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Colors.grey[200]),
-                  ),
-                )
-              : null,
-          child: Column(
-            children: <Widget>[
-              Flexible(
-                child: ListView.builder(
-                  padding: EdgeInsets.all(8.0),
-                  reverse: true,
-                  itemBuilder: (_, int index) {
-                    return _messages[index];
-                  },
-                  itemCount: _messages.length,
-                ),
+        body: Column(
+          children: <Widget>[
+            buildDebugContainer(
+              context,
+              partnerUsername != null ? partnerUsername : widget.userID,
+            ),
+            Flexible(
+              child: ListView.builder(
+                padding: EdgeInsets.all(8.0),
+                reverse: true,
+                itemBuilder: (_, int index) {
+                  return _messages[index];
+                },
+                itemCount: _messages.length,
               ),
-              Divider(height: 1.0),
-              Container(
-                decoration: BoxDecoration(color: Theme.of(context).cardColor),
-                child: _mainInput,
-              ),
-            ],
-          ),
+            ),
+            Divider(height: 1.0),
+            Container(
+              decoration: BoxDecoration(color: Theme.of(context).cardColor),
+              child: _mainInput,
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Container buildDebugContainer(BuildContext context, String debugString) {
+    return Container(
+      color: Theme.of(context).accentColor,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            debugString,
+            style: TextStyle(color: Colors.white),
+          ),
+        ],
       ),
     );
   }

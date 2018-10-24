@@ -43,7 +43,7 @@ class HomePageState extends State<HomePage> {
               : FlatButton(
                   color: Theme.of(context).accentColor,
                   textColor: Theme.of(context).primaryColor,
-                  child: Text('FIND USER'),
+                  child: Text('FIND USER $userID'),
                   onPressed: _findUser,
                 ),
         ),
@@ -131,7 +131,10 @@ class HomePageState extends State<HomePage> {
   void goToChatPage() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (BuildContext context) => ChatPage(roomID: roomID),
+        builder: (BuildContext context) => ChatPage(
+              roomID: roomID,
+              userID: userID,
+            ),
       ),
     );
   }
