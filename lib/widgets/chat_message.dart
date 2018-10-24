@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
 class ChatMessage extends StatelessWidget {
-  ChatMessage({this.message, this.username, this.sentAt});
+  ChatMessage({this.message, this.username});
   final Widget message;
   final String username;
-  final DateTime sentAt;
 
   @override
   Widget build(BuildContext context) {
-    print('[build (ChatMessage)] $message $username $sentAt');
+    print('[build (ChatMessage)] $message $username');
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
@@ -25,13 +24,6 @@ class ChatMessage extends StatelessWidget {
                 Text(
                   username,
                   style: Theme.of(context).textTheme.subhead,
-                ),
-                Container(
-                  margin: EdgeInsets.only(top: 10.0),
-                  child: Text(
-                    sentAt.toIso8601String(),
-                    style: TextStyle(fontSize: 12.0),
-                  ),
                 ),
                 Container(
                   margin: EdgeInsets.only(top: 10.0),

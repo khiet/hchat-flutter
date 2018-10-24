@@ -102,11 +102,7 @@ class HomePageState extends State<HomePage> {
       _hideActivityIndicator();
       goToChatPage();
     } else {
-      Map<String, dynamic> data = {
-        'connected': false,
-        'userID': userID,
-        'createdAt': DateTime.now()
-      };
+      Map<String, dynamic> data = {'connected': false, 'userID': userID};
       DocumentReference documentReference =
           await Firestore.instance.collection('rooms').add(data);
 

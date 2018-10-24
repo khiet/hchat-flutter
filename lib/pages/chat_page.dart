@@ -52,11 +52,7 @@ class ChatPageState extends State<ChatPage> {
 
       newMessages.insert(
         0,
-        ChatMessage(
-          message: message,
-          username: _username,
-          sentAt: document.data['createdAt'],
-        ),
+        ChatMessage(message: message, username: _username),
       );
     }
 
@@ -95,16 +91,11 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void setDataFirestore(Map<String, dynamic> data) {
-    Map<String, dynamic> defaultData = {
-      'createdAt': DateTime.now(),
-    };
-    defaultData.addAll(data);
-
     Firestore.instance
         .collection('rooms')
         .document(widget.roomID)
         .collection('chats')
-        .add(defaultData);
+        .add(data);
   }
 
   void leaveRoom() {
