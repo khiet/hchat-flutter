@@ -27,36 +27,30 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("HChat"),
-        elevation: Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
-      ),
-      body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 20.0,
-                  ),
-                  child: activityIndicator != null
-                      ? activityIndicator
-                      : FlatButton(
-                          color: Theme.of(context).accentColor,
-                          textColor: Theme.of(context).primaryColor,
-                          child: Text('FIND USER'),
-                          onPressed: _findUser,
-                        ),
+    return SafeArea(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.symmetric(
+                  vertical: 20.0,
                 ),
-              ],
-            ),
-            Text('ME: $userID'),
-          ],
-        ),
+                child: activityIndicator != null
+                    ? activityIndicator
+                    : FlatButton(
+                        color: Theme.of(context).accentColor,
+                        textColor: Theme.of(context).primaryColor,
+                        child: Text('FIND USER'),
+                        onPressed: _findUser,
+                      ),
+              ),
+            ],
+          ),
+          Text('ME: $userID'),
+        ],
       ),
     );
   }
