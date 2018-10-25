@@ -7,10 +7,6 @@ import './chat_page.dart';
 import '../shared/adaptive_activity_indicator.dart';
 
 class HomePage extends StatefulWidget {
-  final PageController pageController;
-
-  HomePage({this.pageController});
-
   @override
   State<StatefulWidget> createState() {
     return HomePageState();
@@ -37,15 +33,29 @@ class HomePageState extends State<HomePage> {
         elevation: Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
       ),
       body: SafeArea(
-        child: Center(
-          child: activityIndicator != null
-              ? activityIndicator
-              : FlatButton(
-                  color: Theme.of(context).accentColor,
-                  textColor: Theme.of(context).primaryColor,
-                  child: Text('FIND USER $userID'),
-                  onPressed: _findUser,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 20.0,
+                  ),
+                  child: activityIndicator != null
+                      ? activityIndicator
+                      : FlatButton(
+                          color: Theme.of(context).accentColor,
+                          textColor: Theme.of(context).primaryColor,
+                          child: Text('FIND USER'),
+                          onPressed: _findUser,
+                        ),
                 ),
+              ],
+            ),
+            Text('ME: $userID'),
+          ],
         ),
       ),
     );
@@ -115,7 +125,7 @@ class HomePageState extends State<HomePage> {
       print('[CREATED ROOM] $roomID');
 
       documentReference.snapshots().listen((DocumentSnapshot snapshot) {
-        if (snapshot.data['connected']) {
+        if (snapshot.exists && snapshot.data['connected']) {
           _hideActivityIndicator();
           goToChatPage();
         }

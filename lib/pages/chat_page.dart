@@ -70,41 +70,16 @@ class ChatPageState extends State<ChatPage> {
     setDataFirestore({'imageUrl': uploadedData['imageUrl']});
   }
 
-  void roomUserStreamHandler(QuerySnapshot snapshot) {
-    snapshot.documents.forEach((DocumentSnapshot document) {
-      print('[roomUserStreamHandler] ${document.data}');
-    });
-
-    snapshot.documentChanges.forEach((DocumentChange documentChange) {
-      Map<String, dynamic> changedData = documentChange.document.data;
-      print(
-        '[roomUserStreamHandler (documentChange)] $changedData',
-      );
-
-      if (changedData['left'] == true &&
-          changedData['username'] != widget.userID) {
-        setState(() {
-          partnerUsername = changedData['username'];
-        });
-      }
-    });
-  }
-
   void setDataFirestore(Map<String, dynamic> data) {
+    Map<String, dynamic> defaultData = {'userID': widget.userID};
+
+    data.addAll(defaultData);
+
     Firestore.instance
         .collection('rooms')
         .document(widget.roomID)
         .collection('chats')
         .add(data);
-  }
-
-  void leaveRoom() {
-    Map<String, dynamic> data = {'active': false};
-
-    Firestore.instance
-        .collection('rooms')
-        .document(widget.roomID)
-        .updateData(data);
   }
 
   Future<Map<String, dynamic>> uploadImage(File image) async {
@@ -141,6 +116,38 @@ class ChatPageState extends State<ChatPage> {
       print(error);
       return null;
     }
+  }
+
+  void roomUserStreamHandler(QuerySnapshot snapshot) {
+    snapshot.documents.forEach((DocumentSnapshot document) {
+      print('[roomUserStreamHandler] ${document.data}');
+    });
+
+    snapshot.documentChanges.forEach((DocumentChange documentChange) {
+      Map<String, dynamic> changedData = documentChange.document.data;
+      print(
+        '[roomUserStreamHandler (documentChange)] $changedData',
+      );
+
+      if (changedData['left'] == true &&
+          changedData['username'] != widget.userID) {
+        setState(() {
+          partnerUsername = changedData['username'];
+        });
+      }
+    });
+  }
+
+  void leaveRoom() {
+    print('[leaveRoom]');
+    Map<String, dynamic> data = {'left': true};
+
+    Firestore.instance
+        .collection('rooms')
+        .document(widget.roomID)
+        .collection('users')
+        .document(widget.userID)
+        .updateData(data);
   }
 
   void setUserLocation() async {
@@ -227,7 +234,9 @@ class ChatPageState extends State<ChatPage> {
           children: <Widget>[
             buildDebugContainer(
               context,
-              partnerUsername != null ? partnerUsername : widget.userID,
+              partnerUsername != null
+                  ? "PARTNER: $partnerUsername"
+                  : "ME: ${widget.userID}",
             ),
             Flexible(
               child: ListView.builder(

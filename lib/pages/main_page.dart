@@ -17,9 +17,7 @@ class MainPageState extends State<MainPage> {
     return PageView(
       controller: controller,
       children: <Widget>[
-        HomePage(
-          pageController: controller,
-        ),
+        HomePage(),
         MapPage(),
       ],
     );
