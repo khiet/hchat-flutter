@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import './chat_page.dart';
 
@@ -22,7 +23,27 @@ class HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
-    userID = Uuid().v4();
+    _initUserID();
+  }
+
+  void _initUserID() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String prefUserID = prefs.get('userID');
+    if (prefUserID == null) {
+      prefUserID = Uuid().v4();
+      await prefs.setString('userID', prefUserID);
+    }
+
+    setState(() {
+      userID = prefUserID;
+    });
+  }
+
+  void _clearUserID() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('userID');
+
+    _initUserID();
   }
 
   @override
@@ -50,6 +71,22 @@ class HomePageState extends State<HomePage> {
             ],
           ),
           Text('ME: $userID'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.symmetric(
+                  vertical: 20.0,
+                ),
+                child: FlatButton(
+                  color: Theme.of(context).primaryColor,
+                  textColor: Theme.of(context).accentColor,
+                  child: Text('CLEAR USER ID'),
+                  onPressed: _clearUserID,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -96,6 +133,7 @@ class HomePageState extends State<HomePage> {
       DocumentSnapshot documentSnapshot = querySnapshot.documents.first;
       roomID = documentSnapshot.documentID;
 
+      updateUserRooms(roomID);
       await documentSnapshot.reference.updateData({'connected': true});
       await documentSnapshot.reference
           .collection('users')
@@ -116,6 +154,8 @@ class HomePageState extends State<HomePage> {
           .setData({'username': userID, 'left': false});
 
       roomID = documentReference.documentID;
+
+      updateUserRooms(roomID);
       print('[CREATED ROOM] $roomID');
 
       documentReference.snapshots().listen((DocumentSnapshot snapshot) {
@@ -137,5 +177,20 @@ class HomePageState extends State<HomePage> {
             ),
       ),
     );
+  }
+
+  void updateUserRooms(String roomID) async {
+    List<dynamic> rooms = [roomID];
+    DocumentSnapshot ds =
+        await Firestore.instance.collection('users').document(userID).get();
+
+    if (ds.exists) {
+      rooms.addAll(ds['rooms']);
+    }
+
+    await Firestore.instance
+        .collection('users')
+        .document(userID)
+        .setData({'rooms': rooms});
   }
 }
