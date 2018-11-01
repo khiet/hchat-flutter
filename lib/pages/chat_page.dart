@@ -11,18 +11,21 @@ import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:location/location.dart' as geoloc;
 
+import '../models/chat.dart';
 import '../widgets/chat_message.dart';
 import '../widgets/chat_text.dart';
 import '../widgets/chat_image.dart';
 import '../widgets/main_input.dart';
-
-import '../globals/usernames.dart';
+import '../models/user.dart';
 
 class ChatPage extends StatefulWidget {
   final String roomID;
-  final String userID;
+  final User user;
 
-  ChatPage({this.roomID, this.userID});
+  ChatPage({
+    @required this.roomID,
+    @required this.user,
+  });
 
   @override
   State<StatefulWidget> createState() {
@@ -31,33 +34,28 @@ class ChatPage extends StatefulWidget {
 }
 
 class ChatPageState extends State<ChatPage> {
-  final String _username = (usernames..shuffle()).first;
-
-  List<ChatMessage> _messages = [];
+  List<Chat> _chats = [];
   StreamSubscription<QuerySnapshot> _chastSubscription;
   StreamSubscription<QuerySnapshot> _roomUserSubscription;
   MainInput _mainInput;
-  String partnerUsername;
+  String _partnerUsername;
 
   void chatStreamHandler(QuerySnapshot snapshot) {
-    // snapshot.documents.forEach((DocumentSnapshot document) {
-    //   print('[chatStreamHandler] ${document.data}');
-    // });
-
-    final List<ChatMessage> newMessages = [];
+    final List<Chat> newChats = [];
     for (DocumentSnapshot document in snapshot.documents) {
-      final Widget message = (document.data['imageUrl'] != null)
-          ? ChatImage(imageUrl: document.data['imageUrl'])
-          : ChatText(text: document.data['text']);
-
-      newMessages.insert(
+      newChats.insert(
         0,
-        ChatMessage(message: message, username: _username),
+        Chat(
+          text: document['text'],
+          imageUrl: document['imageUrl'],
+          username: document['username'],
+          createdAt: document['createdAt'],
+        ),
       );
     }
 
     setState(() {
-      _messages = newMessages;
+      _chats = newChats;
     });
   }
 
@@ -71,7 +69,11 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void setDataFirestore(Map<String, dynamic> data) {
-    Map<String, dynamic> defaultData = {'userID': widget.userID};
+    Map<String, dynamic> defaultData = {
+      'userID': widget.user.id,
+      'username': widget.user.username,
+      'createdAt': FieldValue.serverTimestamp()
+    };
 
     data.addAll(defaultData);
 
@@ -130,9 +132,9 @@ class ChatPageState extends State<ChatPage> {
       );
 
       if (changedData['left'] == true &&
-          changedData['username'] != widget.userID) {
+          changedData['username'] != widget.user.username) {
         setState(() {
-          partnerUsername = changedData['username'];
+          _partnerUsername = changedData['username'];
         });
       }
     });
@@ -140,14 +142,51 @@ class ChatPageState extends State<ChatPage> {
 
   void leaveRoom() {
     print('[leaveRoom]');
+    markUserAsLeft();
+    if (_chats.isNotEmpty) {
+      updateHistories(widget.roomID, _chats.first);
+    }
+  }
+
+  void markUserAsLeft() {
+    print('[markUserAsLeft]');
     Map<String, dynamic> data = {'left': true};
 
     Firestore.instance
         .collection('rooms')
         .document(widget.roomID)
         .collection('users')
-        .document(widget.userID)
+        .document(widget.user.id)
         .updateData(data);
+  }
+
+  void updateHistories(String roomID, Chat lastChat) async {
+    print('[updateHistories]');
+
+    Map<String, dynamic> data = {
+      'roomID': roomID,
+      'lastChatPreviewText': lastChat.previewText(),
+      'lastChatUsername': lastChat.username,
+      'lastChatCreatedAt': lastChat.createdAt,
+    };
+    String userID = widget.user.id;
+
+    QuerySnapshot fbHistories = await Firestore.instance
+        .collection('histories')
+        .where('roomID', isEqualTo: roomID)
+        .getDocuments();
+
+    if (fbHistories.documents.isEmpty) {
+      data['userIDs'] = [userID];
+      Firestore.instance.collection('histories').add(data);
+    } else {
+      List<dynamic> userIDs = fbHistories.documents.first['userIDs'];
+      if (!userIDs.contains(userID)) {
+        data['userIDs'] = List.from(userIDs)..add(userID);
+      }
+
+      fbHistories.documents.first.reference.updateData(data);
+    }
   }
 
   void setUserLocation() async {
@@ -234,18 +273,18 @@ class ChatPageState extends State<ChatPage> {
           children: <Widget>[
             buildDebugContainer(
               context,
-              partnerUsername != null
-                  ? "PARTNER: $partnerUsername"
-                  : "ME: ${widget.userID}",
+              _partnerUsername != null
+                  ? "PARTNER: $_partnerUsername"
+                  : "ME: ${widget.user.username}",
             ),
             Flexible(
               child: ListView.builder(
                 padding: EdgeInsets.all(8.0),
                 reverse: true,
                 itemBuilder: (_, int index) {
-                  return _messages[index];
+                  return buildChatMessage(_chats[index]);
                 },
-                itemCount: _messages.length,
+                itemCount: _chats.length,
               ),
             ),
             Divider(height: 1.0),
@@ -256,6 +295,18 @@ class ChatPageState extends State<ChatPage> {
           ],
         ),
       ),
+    );
+  }
+
+  ChatMessage buildChatMessage(Chat chat) {
+    Widget message = chat.isImageChat()
+        ? ChatImage(imageUrl: chat.imageUrl)
+        : ChatText(text: chat.text);
+
+    return ChatMessage(
+      createdAt: chat.createdAt,
+      username: chat.username,
+      message: message,
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import './home_page.dart';
 import './map_page.dart';
+import './history_page.dart';
 
 class MainPage extends StatefulWidget {
   @override
@@ -13,7 +14,7 @@ class MainPageState extends State<MainPage> {
   int _tabIndex = 0;
   final List<Widget> _pages = [
     HomePage(),
-    MapPage(),
+    HistoryPage(),
     MapPage(),
   ];
 

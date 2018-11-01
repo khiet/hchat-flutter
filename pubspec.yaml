@@ -26,6 +26,7 @@ dependencies:
   location: ^1.4.1
   uuid: ^1.0.3
   shared_preferences: ^0.4.3
+  intl: ^0.15.7
   google_maps_flutter:
     git:
      url: git://github.com/flutter/plugins

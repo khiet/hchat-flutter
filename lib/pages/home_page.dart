@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import './chat_page.dart';
+import '../models/user.dart';
 
 import '../shared/adaptive_activity_indicator.dart';
 
@@ -16,34 +15,28 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   Widget activityIndicator;
-  String userID;
+  User user;
   String roomID;
 
   @override
   void initState() {
     super.initState();
 
-    _initUserID();
+    _initUser();
   }
 
-  void _initUserID() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String prefUserID = prefs.get('userID');
-    if (prefUserID == null) {
-      prefUserID = Uuid().v4();
-      await prefs.setString('userID', prefUserID);
-    }
+  void _initUser() async {
+    user = await User.findOrCreate();
 
     setState(() {
-      userID = prefUserID;
+      user = user;
     });
   }
 
-  void _clearUserID() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('userID');
+  void _resetUser() async {
+    await User.destroy();
 
-    _initUserID();
+    _initUser();
   }
 
   @override
@@ -70,7 +63,7 @@ class HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          Text('ME: $userID'),
+          Text('ME: ${user?.debugUsername()}'),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -82,7 +75,7 @@ class HomePageState extends State<HomePage> {
                   color: Theme.of(context).primaryColor,
                   textColor: Theme.of(context).accentColor,
                   child: Text('CLEAR USER ID'),
-                  onPressed: _clearUserID,
+                  onPressed: _resetUser,
                 ),
               ),
             ],
@@ -123,74 +116,57 @@ class HomePageState extends State<HomePage> {
 
     DocumentSnapshot availableRoom;
     if (querySnapshot.documents.length > 0) {
-      availableRoom = querySnapshot.documents
-          .firstWhere((DocumentSnapshot documentSnapshot) {
-        return documentSnapshot.data['userID'] != userID;
-      });
+      availableRoom = querySnapshot.documents.firstWhere(
+          (DocumentSnapshot documentSnapshot) =>
+              documentSnapshot['userID'] != user.id,
+          orElse: () => null);
     }
 
     if (availableRoom != null) {
       DocumentSnapshot documentSnapshot = querySnapshot.documents.first;
       roomID = documentSnapshot.documentID;
 
-      updateUserRooms(roomID);
       await documentSnapshot.reference.updateData({'connected': true});
       await documentSnapshot.reference
           .collection('users')
-          .document(userID)
-          .setData({'username': userID, 'left': false});
+          .document(user.id)
+          .setData({'username': user.username, 'left': false});
 
       print('[JOINED ROOM] $roomID');
       _hideActivityIndicator();
-      goToChatPage();
+      goToChatPage(context);
     } else {
-      Map<String, dynamic> data = {'connected': false, 'userID': userID};
+      Map<String, dynamic> data = {'connected': false, 'userID': user.id};
       DocumentReference documentReference =
           await Firestore.instance.collection('rooms').add(data);
 
       await documentReference
           .collection('users')
-          .document(userID)
-          .setData({'username': userID, 'left': false});
+          .document(user.id)
+          .setData({'username': user.username, 'left': false});
 
       roomID = documentReference.documentID;
 
-      updateUserRooms(roomID);
       print('[CREATED ROOM] $roomID');
 
       documentReference.snapshots().listen((DocumentSnapshot snapshot) {
         if (snapshot.exists && snapshot.data['connected']) {
           _hideActivityIndicator();
-          goToChatPage();
+          goToChatPage(context);
         }
       });
       _showActivityIndicator('Waiting for a user to join...');
     }
   }
 
-  void goToChatPage() {
+  void goToChatPage(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (BuildContext context) => ChatPage(
               roomID: roomID,
-              userID: userID,
+              user: user,
             ),
       ),
     );
-  }
-
-  void updateUserRooms(String roomID) async {
-    List<dynamic> rooms = [roomID];
-    DocumentSnapshot ds =
-        await Firestore.instance.collection('users').document(userID).get();
-
-    if (ds.exists) {
-      rooms.addAll(ds['rooms']);
-    }
-
-    await Firestore.instance
-        .collection('users')
-        .document(userID)
-        .setData({'rooms': rooms});
   }
 }

@@ -15,18 +15,16 @@ class MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: GoogleMap(
-            onMapCreated: _onMapCreated,
-            options: GoogleMapOptions(
-              scrollGesturesEnabled: true,
-              zoomGesturesEnabled: true,
-              cameraPosition: CameraPosition(
-                target: center,
-                zoom: 11.0,
-              ),
+    return SafeArea(
+      child: Center(
+        child: GoogleMap(
+          onMapCreated: _onMapCreated,
+          options: GoogleMapOptions(
+            scrollGesturesEnabled: true,
+            zoomGesturesEnabled: true,
+            cameraPosition: CameraPosition(
+              target: center,
+              zoom: 11.0,
             ),
           ),
         ),
