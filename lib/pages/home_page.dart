@@ -34,6 +34,7 @@ class HomePageState extends State<HomePage> {
   }
 
   void _resetUser() async {
+    _hideActivityIndicator();
     await User.destroy();
 
     _initUser();
