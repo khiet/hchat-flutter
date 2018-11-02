@@ -17,6 +17,7 @@ import '../widgets/chat_text.dart';
 import '../widgets/chat_image.dart';
 import '../widgets/main_input.dart';
 import '../models/user.dart';
+import '../globals/constants.dart';
 
 class ChatPage extends StatefulWidget {
   final String roomID;
@@ -97,9 +98,7 @@ class ChatPageState extends State<ChatPage> {
     );
     final http.MultipartRequest imageUploadRequest = http.MultipartRequest(
       'POST',
-      Uri.parse(
-        'https://us-central1-hchat-app.cloudfunctions.net/storeImage',
-      ),
+      Uri.parse(imageUploadUrl),
     );
 
     imageUploadRequest.files.add(file);

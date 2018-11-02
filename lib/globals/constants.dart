@@ -1,3 +1,5 @@
+final String imageUploadUrl =
+    'https://us-central1-hchat-app.cloudfunctions.net/storeImage';
 final List usernames = [
   'ライオン',
   'トラ',

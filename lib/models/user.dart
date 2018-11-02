@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../globals/usernames.dart';
+import '../globals/constants.dart';
 
 class User {
   User({@required this.id, @required this.username});
