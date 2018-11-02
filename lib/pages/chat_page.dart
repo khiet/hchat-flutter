@@ -295,7 +295,6 @@ class ChatPageState extends State<ChatPage> {
             _notification,
             Flexible(
               child: ListView.builder(
-                padding: EdgeInsets.all(8.0),
                 reverse: true,
                 itemBuilder: (_, int index) {
                   return buildChatMessage(_chats[index]);
@@ -314,20 +313,23 @@ class ChatPageState extends State<ChatPage> {
     );
   }
 
-  ChatMessage buildChatMessage(Chat chat) {
+  Widget buildChatMessage(Chat chat) {
     Widget message = chat.isImageChat()
         ? ChatImage(imageUrl: chat.imageUrl)
         : ChatText(text: chat.text);
 
-    return ChatMessage(
-      createdAt: chat.createdAt,
-      username: chat.username,
-      message: message,
-      myMessage: (chat.userID == widget.user.id),
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.0),
+      child: ChatMessage(
+        createdAt: chat.createdAt,
+        username: chat.username,
+        message: message,
+        myMessage: (chat.userID == widget.user.id),
+      ),
     );
   }
 
-  Container buildNotification(BuildContext context, String message) {
+  Widget buildNotification(BuildContext context, String message) {
     return Container(
       color: Theme.of(context).accentColor,
       child: Row(

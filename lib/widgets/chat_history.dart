@@ -25,14 +25,13 @@ class ChatHistory extends StatelessWidget {
   Widget build(BuildContext context) {
     print('[build (ChatHistory)]');
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 10.0),
       child: GestureDetector(
         onTap: () => goToChatPage(context),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Container(
-              margin: EdgeInsets.only(right: 15.0),
+              margin: EdgeInsets.only(right: 10.0),
               child: CircleAvatar(child: Text(partnerName[0])),
             ),
             Column(
@@ -40,7 +39,7 @@ class ChatHistory extends StatelessWidget {
               children: <Widget>[
                 Text(
                   DateFormat.yMMMd().format(createdAt),
-                  style: Theme.of(context).textTheme.subhead,
+                  style: Theme.of(context).textTheme.caption,
                 ),
                 Container(
                   margin: EdgeInsets.only(top: 10.0),

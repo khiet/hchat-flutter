@@ -37,10 +37,10 @@ class HistoryPageState extends State<HistoryPage> {
         .collection('histories')
         .where('userIDs', arrayContains: userID)
         .snapshots()
-        .listen(historyStreamHandler);
+        .listen(_historyStreamHandler);
   }
 
-  void historyStreamHandler(QuerySnapshot snapshot) {
+  void _historyStreamHandler(QuerySnapshot snapshot) {
     List<ChatHistory> fetchedChatHistories = [];
 
     for (DocumentSnapshot history in snapshot.documents) {
@@ -73,18 +73,35 @@ class HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: ListView.builder(
-        padding: EdgeInsets.all(8.0),
-        itemBuilder: (_, int index) {
-          return Column(
-            children: <Widget>[
-              _chatHistories[index],
-              Divider(height: 1.0),
-            ],
-          );
-        },
-        itemCount: _chatHistories.length,
+      child: (_chatHistories.length > 0)
+          ? _buildChatHistoryList()
+          : _buildNoHistoryPage(),
+    );
+  }
+
+  Widget _buildNoHistoryPage() {
+    return Center(
+      child: Text(
+        'No History',
+        style: Theme.of(context).textTheme.title,
       ),
+    );
+  }
+
+  Widget _buildChatHistoryList() {
+    return ListView.builder(
+      itemBuilder: (_, int index) {
+        return Column(
+          children: <Widget>[
+            Container(
+              padding: EdgeInsets.all(10.0),
+              child: _chatHistories[index],
+            ),
+            Divider(height: 1.0),
+          ],
+        );
+      },
+      itemCount: _chatHistories.length,
     );
   }
 }
