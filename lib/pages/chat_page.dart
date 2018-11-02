@@ -38,7 +38,7 @@ class ChatPageState extends State<ChatPage> {
   StreamSubscription<QuerySnapshot> _chastSubscription;
   StreamSubscription<QuerySnapshot> _roomUserSubscription;
   MainInput _mainInput;
-  String _partnerUsername;
+  Widget _notification = Container();
 
   void chatStreamHandler(QuerySnapshot snapshot) {
     final List<Chat> newChats = [];
@@ -131,11 +131,20 @@ class ChatPageState extends State<ChatPage> {
         '[roomUserStreamHandler (documentChange)] $changedData',
       );
 
-      if (changedData['left'] == true &&
-          changedData['username'] != widget.user.username) {
-        setState(() {
-          _partnerUsername = changedData['username'];
-        });
+      if (changedData['left'] == true) {
+        if (changedData['username'] != widget.user.username) {
+          setState(() {
+            _notification = buildNotification(
+                context, '${changedData['username']} has left.');
+          });
+        }
+      } else {
+        if (changedData['username'] != widget.user.username) {
+          setState(() {
+            _notification = buildNotification(
+                context, '${changedData['username']} has joined.');
+          });
+        }
       }
     });
   }
@@ -271,12 +280,7 @@ class ChatPageState extends State<ChatPage> {
         ),
         body: Column(
           children: <Widget>[
-            buildDebugContainer(
-              context,
-              _partnerUsername != null
-                  ? "PARTNER: $_partnerUsername"
-                  : "ME: ${widget.user.username}",
-            ),
+            _notification,
             Flexible(
               child: ListView.builder(
                 padding: EdgeInsets.all(8.0),
@@ -310,14 +314,14 @@ class ChatPageState extends State<ChatPage> {
     );
   }
 
-  Container buildDebugContainer(BuildContext context, String debugString) {
+  Container buildNotification(BuildContext context, String message) {
     return Container(
       color: Theme.of(context).accentColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Text(
-            debugString,
+            message,
             style: TextStyle(color: Colors.white),
           ),
         ],
