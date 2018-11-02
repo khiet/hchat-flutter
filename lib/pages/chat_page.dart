@@ -142,14 +142,20 @@ class ChatPageState extends State<ChatPage> {
         if (changedData['username'] != widget.user.username) {
           setState(() {
             _notification = buildNotification(
-                context, '${changedData['username']} has left.');
+              context,
+              '${changedData['username']} has left.',
+              Theme.of(context).primaryColorLight,
+            );
           });
         }
       } else {
         if (changedData['username'] != widget.user.username) {
           setState(() {
             _notification = buildNotification(
-                context, '${changedData['username']} has joined.');
+              context,
+              '${changedData['username']} has joined.',
+              Theme.of(context).primaryColorDark,
+            );
           });
         }
       }
@@ -329,9 +335,10 @@ class ChatPageState extends State<ChatPage> {
     );
   }
 
-  Widget buildNotification(BuildContext context, String message) {
+  Widget buildNotification(
+      BuildContext context, String message, Color bgColor) {
     return Container(
-      color: Theme.of(context).accentColor,
+      color: bgColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
