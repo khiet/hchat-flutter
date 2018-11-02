@@ -50,6 +50,7 @@ class ChatPageState extends State<ChatPage> {
           imageUrl: document['imageUrl'],
           username: document['username'],
           createdAt: document['createdAt'],
+          userID: document['userID'],
         ),
       );
     }
@@ -311,6 +312,7 @@ class ChatPageState extends State<ChatPage> {
       createdAt: chat.createdAt,
       username: chat.username,
       message: message,
+      myMessage: (chat.userID == widget.user.id),
     );
   }
 
