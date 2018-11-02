@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 import '../pages/chat_page.dart';
@@ -53,7 +54,14 @@ class ChatHistory extends StatelessWidget {
     );
   }
 
-  void goToChatPage(BuildContext context) {
+  void goToChatPage(BuildContext context) async {
+    await Firestore.instance
+        .collection('rooms')
+        .document(roomID)
+        .collection('users')
+        .document(user.id)
+        .updateData({'left': false});
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (BuildContext context) => ChatPage(

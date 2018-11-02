@@ -55,8 +55,8 @@ class HomePageState extends State<HomePage> {
                 child: activityIndicator != null
                     ? activityIndicator
                     : FlatButton(
-                        color: Theme.of(context).accentColor,
-                        textColor: Theme.of(context).primaryColor,
+                        color: Theme.of(context).primaryColor,
+                        textColor: Colors.white,
                         child: Text('FIND USER'),
                         onPressed: _findUser,
                       ),
@@ -72,8 +72,8 @@ class HomePageState extends State<HomePage> {
                   vertical: 20.0,
                 ),
                 child: FlatButton(
-                  color: Theme.of(context).primaryColor,
-                  textColor: Theme.of(context).accentColor,
+                  color: Theme.of(context).accentColor,
+                  textColor: Colors.white,
                   child: Text('CLEAR USER ID'),
                   onPressed: _resetUser,
                 ),

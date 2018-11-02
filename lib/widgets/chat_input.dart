@@ -17,12 +17,14 @@ class ChatInputState extends State<ChatInput> {
   bool _isSubmittable = false;
 
   void _handleSubmitted(String text) {
-    widget.onSubmitted(text);
-    _textController.clear();
+    if (_isSubmittable) {
+      widget.onSubmitted(text);
+      _textController.clear();
 
-    setState(() {
-      _isSubmittable = false;
-    });
+      setState(() {
+        _isSubmittable = false;
+      });
+    }
   }
 
   @override

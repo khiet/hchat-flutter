@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
 final ThemeData _iOSTheme = ThemeData(
-  primarySwatch: Colors.orange,
-  primaryColor: Colors.grey[100],
+  primarySwatch: Colors.purple,
+  primaryColor: Colors.pink,
+  accentColor: Colors.black,
   primaryColorBrightness: Brightness.light,
 );
 
 final ThemeData _androidTheme = ThemeData(
   primarySwatch: Colors.purple,
-  accentColor: Colors.orangeAccent[400],
+  primaryColor: Colors.pink,
+  accentColor: Colors.black,
 );
 
 ThemeData getAdaptiveThemeData(BuildContext context) {
