@@ -49,7 +49,9 @@ class HistoryPageState extends State<HistoryPage> {
         ChatHistory(
           createdAt: history['lastChatCreatedAt'],
           previewText: history['lastChatPreviewText'],
-          username: history['lastChatUsername'],
+          partnerName: (history['lastChatPartnerName'] == user.username)
+              ? history['lastChatUsername']
+              : history['lastChatPartnerName'],
           user: user,
           roomID: history['roomID'],
         ),

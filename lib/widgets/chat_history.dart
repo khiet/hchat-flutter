@@ -8,14 +8,14 @@ import '../models/user.dart';
 
 class ChatHistory extends StatelessWidget {
   ChatHistory({
-    @required this.username,
+    @required this.partnerName,
     @required this.createdAt,
     @required this.previewText,
     @required this.user,
     @required this.roomID,
   });
 
-  final String username;
+  final String partnerName;
   final DateTime createdAt;
   final String previewText;
   final User user;
@@ -23,7 +23,7 @@ class ChatHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('[build (ChatHistory)] $previewText $username');
+    print('[build (ChatHistory)]');
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10.0),
       child: GestureDetector(
@@ -33,7 +33,7 @@ class ChatHistory extends StatelessWidget {
           children: <Widget>[
             Container(
               margin: EdgeInsets.only(right: 15.0),
-              child: CircleAvatar(child: Text(username[0])),
+              child: CircleAvatar(child: Text(partnerName[0])),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,12 +55,16 @@ class ChatHistory extends StatelessWidget {
   }
 
   void goToChatPage(BuildContext context) async {
-    await Firestore.instance
+    QuerySnapshot fbQsRoomUser = await Firestore.instance
         .collection('rooms')
         .document(roomID)
         .collection('users')
-        .document(user.id)
-        .updateData({'left': false});
+        .where('userID', isEqualTo: user.id)
+        .getDocuments();
+
+    fbQsRoomUser.documents.forEach((DocumentSnapshot user) {
+      user.reference.updateData({'left': false});
+    });
 
     Navigator.of(context).push(
       MaterialPageRoute(

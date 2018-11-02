@@ -40,6 +40,7 @@ class ChatPageState extends State<ChatPage> {
   StreamSubscription<QuerySnapshot> _roomUserSubscription;
   MainInput _mainInput;
   Widget _notification = Container();
+  String _partnerName;
 
   void chatStreamHandler(QuerySnapshot snapshot) {
     final List<Chat> newChats = [];
@@ -50,6 +51,7 @@ class ChatPageState extends State<ChatPage> {
           text: document['text'],
           imageUrl: document['imageUrl'],
           username: document['username'],
+          partnerName: document['partnerName'],
           createdAt: document['createdAt'],
           userID: document['userID'],
         ),
@@ -74,6 +76,7 @@ class ChatPageState extends State<ChatPage> {
     Map<String, dynamic> defaultData = {
       'userID': widget.user.id,
       'username': widget.user.username,
+      'partnerName': _partnerName,
       'createdAt': FieldValue.serverTimestamp()
     };
 
@@ -115,7 +118,6 @@ class ChatPageState extends State<ChatPage> {
         return responseData;
       }
     } catch (error) {
-      print(error);
       return null;
     }
   }
@@ -123,6 +125,11 @@ class ChatPageState extends State<ChatPage> {
   void roomUserStreamHandler(QuerySnapshot snapshot) {
     snapshot.documents.forEach((DocumentSnapshot document) {
       print('[roomUserStreamHandler] ${document.data}');
+      if (_partnerName == null && (document['userID'] != widget.user.id)) {
+        _partnerName = document['username'];
+      }
+
+      print('[_partnerName] $_partnerName');
     });
 
     snapshot.documentChanges.forEach((DocumentChange documentChange) {
@@ -157,16 +164,20 @@ class ChatPageState extends State<ChatPage> {
     }
   }
 
-  void markUserAsLeft() {
+  void markUserAsLeft() async {
     print('[markUserAsLeft]');
     Map<String, dynamic> data = {'left': true};
 
-    Firestore.instance
+    QuerySnapshot fbQsRoomUser = await Firestore.instance
         .collection('rooms')
         .document(widget.roomID)
         .collection('users')
-        .document(widget.user.id)
-        .updateData(data);
+        .where('userID', isEqualTo: widget.user.id)
+        .getDocuments();
+
+    fbQsRoomUser.documents.forEach((DocumentSnapshot user) {
+      user.reference.updateData(data);
+    });
   }
 
   void updateHistories(String roomID, Chat lastChat) async {
@@ -176,6 +187,7 @@ class ChatPageState extends State<ChatPage> {
       'roomID': roomID,
       'lastChatPreviewText': lastChat.previewText(),
       'lastChatUsername': lastChat.username,
+      'lastChatPartnerName': lastChat.partnerName,
       'lastChatCreatedAt': lastChat.createdAt,
     };
     String userID = widget.user.id;

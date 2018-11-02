@@ -130,8 +130,7 @@ class HomePageState extends State<HomePage> {
       await documentSnapshot.reference.updateData({'connected': true});
       await documentSnapshot.reference
           .collection('users')
-          .document(user.id)
-          .setData({'username': user.username, 'left': false});
+          .add({'username': user.username, 'left': false, 'userID': user.id});
 
       print('[JOINED ROOM] $roomID');
       _hideActivityIndicator();
@@ -143,8 +142,7 @@ class HomePageState extends State<HomePage> {
 
       await documentReference
           .collection('users')
-          .document(user.id)
-          .setData({'username': user.username, 'left': false});
+          .add({'username': user.username, 'left': false, 'userID': user.id});
 
       roomID = documentReference.documentID;
 
