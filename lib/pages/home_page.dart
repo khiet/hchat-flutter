@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -113,6 +115,7 @@ class HomePageState extends State<HomePage> {
     QuerySnapshot querySnapshot = await Firestore.instance
         .collection('rooms')
         .where('connected', isEqualTo: false)
+        .where('dead', isEqualTo: false)
         .getDocuments();
 
     DocumentSnapshot availableRoom;
@@ -136,26 +139,64 @@ class HomePageState extends State<HomePage> {
       _hideActivityIndicator();
       goToChatPage(context);
     } else {
-      Map<String, dynamic> data = {'connected': false, 'userID': user.id};
-      DocumentReference documentReference =
-          await Firestore.instance.collection('rooms').add(data);
+      await _createRoomAndWaitForUser();
 
-      await documentReference
-          .collection('users')
-          .add({'username': user.username, 'left': false, 'userID': user.id});
-
-      roomID = documentReference.documentID;
-
-      print('[CREATED ROOM] $roomID');
-
-      documentReference.snapshots().listen((DocumentSnapshot snapshot) {
-        if (snapshot.exists && snapshot.data['connected']) {
-          _hideActivityIndicator();
-          goToChatPage(context);
-        }
-      });
       _showActivityIndicator('Waiting for a user to join...');
     }
+  }
+
+  Future<StreamSubscription<DocumentSnapshot>>
+      _createRoomAndWaitForUser() async {
+    final Duration findUserDuration = Duration(seconds: 30);
+
+    final Map<String, dynamic> data = {
+      'connected': false,
+      'userID': user.id,
+      'dead': false
+    };
+    final DocumentReference fbRoom =
+        await Firestore.instance.collection('rooms').add(data);
+    await fbRoom
+        .collection('users')
+        .add({'username': user.username, 'left': false, 'userID': user.id});
+    roomID = fbRoom.documentID;
+    print('[CREATED ROOM] $roomID');
+
+    final Timer findUserTimer =
+        Timer(findUserDuration, () => _cancelByUserNotFound(fbRoom));
+
+    return fbRoom.snapshots().listen((DocumentSnapshot snapshot) {
+      if (snapshot.exists && snapshot.data['connected']) {
+        findUserTimer.cancel();
+        _hideActivityIndicator();
+        goToChatPage(context);
+      }
+    });
+  }
+
+  void _cancelByUserNotFound(DocumentReference fbRoom) {
+    print('[warnUserNotFound]');
+
+    fbRoom.updateData({'dead': true});
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('User could not be found.'),
+          content: Text("Please try again later."),
+          actions: <Widget>[
+            FlatButton(
+              child: Text("OK"),
+              onPressed: () {
+                _hideActivityIndicator();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void goToChatPage(BuildContext context) {
