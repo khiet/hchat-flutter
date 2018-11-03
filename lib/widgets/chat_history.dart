@@ -26,7 +26,7 @@ class ChatHistory extends StatelessWidget {
     print('[build (ChatHistory)]');
     return Container(
       child: GestureDetector(
-        onTap: () => goToChatPage(context),
+        onTap: () => _goToChatPage(context),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -34,18 +34,20 @@ class ChatHistory extends StatelessWidget {
               margin: EdgeInsets.only(right: 10.0),
               child: CircleAvatar(child: Text(partnerName[0])),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  DateFormat.yMMMd().format(createdAt),
-                  style: Theme.of(context).textTheme.caption,
-                ),
-                Container(
-                  margin: EdgeInsets.only(top: 10.0),
-                  child: Text(previewText),
-                ),
-              ],
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    DateFormat.yMMMd().format(createdAt),
+                    style: Theme.of(context).textTheme.caption,
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 10.0),
+                    child: Text(_displayPreviewText(previewText)),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -53,7 +55,11 @@ class ChatHistory extends StatelessWidget {
     );
   }
 
-  void goToChatPage(BuildContext context) async {
+  String _displayPreviewText(String text) {
+    return (text.length <= 70) ? text : '${text.substring(0, 70)}...';
+  }
+
+  void _goToChatPage(BuildContext context) async {
     QuerySnapshot fbQsRoomUser = await Firestore.instance
         .collection('rooms')
         .document(roomID)
