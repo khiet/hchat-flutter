@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import './chat_page.dart';
 import '../models/user.dart';
-
 import '../shared/adaptive_activity_indicator.dart';
 
 class HomePage extends StatefulWidget {
@@ -48,13 +47,15 @@ class HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          Text(
+            'Your name is ${user.username}',
+            style: Theme.of(context).textTheme.title,
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Container(
-                padding: EdgeInsets.symmetric(
-                  vertical: 20.0,
-                ),
+                margin: EdgeInsets.only(top: 20.0),
                 child: activityIndicator != null
                     ? activityIndicator
                     : FlatButton(
@@ -66,23 +67,7 @@ class HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          Text('ME: ${user?.debugUsername()}'),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.symmetric(
-                  vertical: 20.0,
-                ),
-                child: FlatButton(
-                  color: Theme.of(context).accentColor,
-                  textColor: Colors.white,
-                  child: Text('CLEAR USER ID'),
-                  onPressed: _resetUser,
-                ),
-              ),
-            ],
-          ),
+          _buildResetUser(),
         ],
       ),
     );
@@ -112,41 +97,40 @@ class HomePageState extends State<HomePage> {
   void _findUser() async {
     _showActivityIndicator('Looking for a user...');
 
-    QuerySnapshot querySnapshot = await Firestore.instance
+    final QuerySnapshot fbQsRooms = await Firestore.instance
         .collection('rooms')
         .where('connected', isEqualTo: false)
         .where('dead', isEqualTo: false)
         .getDocuments();
 
     DocumentSnapshot availableRoom;
-    if (querySnapshot.documents.length > 0) {
-      availableRoom = querySnapshot.documents.firstWhere(
+    if (fbQsRooms.documents.length > 0) {
+      availableRoom = fbQsRooms.documents.firstWhere(
           (DocumentSnapshot documentSnapshot) =>
               documentSnapshot['userID'] != user.id,
           orElse: () => null);
     }
 
     if (availableRoom != null) {
-      DocumentSnapshot documentSnapshot = querySnapshot.documents.first;
-      roomID = documentSnapshot.documentID;
+      DocumentSnapshot fbRoom = fbQsRooms.documents.first;
+      roomID = fbRoom.documentID;
 
-      await documentSnapshot.reference.updateData({'connected': true});
-      await documentSnapshot.reference
+      await fbRoom.reference.updateData({'connected': true});
+      await fbRoom.reference
           .collection('users')
           .add({'username': user.username, 'left': false, 'userID': user.id});
 
       print('[JOINED ROOM] $roomID');
       _hideActivityIndicator();
-      goToChatPage(context);
+      _goToChatPage(context);
     } else {
-      await _createRoomAndWaitForUser();
+      _createRoomAndWaitForUser();
 
       _showActivityIndicator('Waiting for a user to join...');
     }
   }
 
-  Future<StreamSubscription<DocumentSnapshot>>
-      _createRoomAndWaitForUser() async {
+  void _createRoomAndWaitForUser() async {
     final Duration findUserDuration = Duration(seconds: 30);
 
     final Map<String, dynamic> data = {
@@ -165,11 +149,11 @@ class HomePageState extends State<HomePage> {
     final Timer findUserTimer =
         Timer(findUserDuration, () => _cancelByUserNotFound(fbRoom));
 
-    return fbRoom.snapshots().listen((DocumentSnapshot snapshot) {
+    fbRoom.snapshots().listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data['connected']) {
         findUserTimer.cancel();
         _hideActivityIndicator();
-        goToChatPage(context);
+        _goToChatPage(context);
       }
     });
   }
@@ -199,7 +183,7 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  void goToChatPage(BuildContext context) {
+  void _goToChatPage(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (BuildContext context) => ChatPage(
@@ -207,6 +191,35 @@ class HomePageState extends State<HomePage> {
               user: user,
             ),
       ),
+    );
+  }
+
+  Widget _buildResetUser() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Column(
+          children: <Widget>[
+            Container(
+              margin: EdgeInsets.only(top: 20.0),
+              child: FlatButton(
+                color: Theme.of(context).accentColor,
+                textColor: Colors.white,
+                child: Text('CLEAR USER ID'),
+                onPressed: _resetUser,
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 20.0),
+              child: Text(user.id),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 20.0),
+              child: Text(user.username),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
