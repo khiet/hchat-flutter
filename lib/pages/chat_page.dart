@@ -42,7 +42,33 @@ class ChatPageState extends State<ChatPage> {
   Widget _notification = Container();
   String _partnerName;
 
-  void chatStreamHandler(QuerySnapshot snapshot) {
+  @override
+  void initState() {
+    print('[initState (ChatPage)]');
+    super.initState();
+
+    _setUserLocation();
+    _chastSubscription = Firestore.instance
+        .collection('rooms')
+        .document(widget.roomID)
+        .collection('chats')
+        .snapshots()
+        .listen(_chatStreamHandler);
+
+    _roomUserSubscription = Firestore.instance
+        .collection('rooms')
+        .document(widget.roomID)
+        .collection('users')
+        .snapshots()
+        .listen(_roomUserStreamHandler);
+
+    _mainInput = MainInput(
+      chatInputHandler: _chatInputHandler,
+      imageHandler: _imageHandler,
+    );
+  }
+
+  void _chatStreamHandler(QuerySnapshot snapshot) {
     final List<Chat> newChats = [];
     for (DocumentSnapshot document in snapshot.documents) {
       newChats.insert(
@@ -63,16 +89,16 @@ class ChatPageState extends State<ChatPage> {
     });
   }
 
-  void chatInputHandler(String text) {
-    setDataFirestore({'text': text});
+  void _chatInputHandler(String text) {
+    _setDataFirestore({'text': text});
   }
 
-  void imageHandler(File image) async {
-    final Map<String, dynamic> uploadedData = await uploadImage(image);
-    setDataFirestore({'imageUrl': uploadedData['imageUrl']});
+  void _imageHandler(File image) async {
+    final Map<String, dynamic> uploadedData = await _uploadImage(image);
+    _setDataFirestore({'imageUrl': uploadedData['imageUrl']});
   }
 
-  void setDataFirestore(Map<String, dynamic> data) {
+  void _setDataFirestore(Map<String, dynamic> data) {
     Map<String, dynamic> defaultData = {
       'userID': widget.user.id,
       'username': widget.user.username,
@@ -89,7 +115,7 @@ class ChatPageState extends State<ChatPage> {
         .add(data);
   }
 
-  Future<Map<String, dynamic>> uploadImage(File image) async {
+  Future<Map<String, dynamic>> _uploadImage(File image) async {
     final List<String> mimeTypeData = lookupMimeType(image.path).split('/');
     final file = await http.MultipartFile.fromPath(
       'image',
@@ -122,9 +148,9 @@ class ChatPageState extends State<ChatPage> {
     }
   }
 
-  void roomUserStreamHandler(QuerySnapshot snapshot) {
+  void _roomUserStreamHandler(QuerySnapshot snapshot) {
     snapshot.documents.forEach((DocumentSnapshot document) {
-      print('[roomUserStreamHandler] ${document.data}');
+      print('[_roomUserStreamHandler] ${document.data}');
       if (_partnerName == null && (document['userID'] != widget.user.id)) {
         _partnerName = document['username'];
       }
@@ -135,13 +161,13 @@ class ChatPageState extends State<ChatPage> {
     snapshot.documentChanges.forEach((DocumentChange documentChange) {
       Map<String, dynamic> changedData = documentChange.document.data;
       print(
-        '[roomUserStreamHandler (documentChange)] $changedData',
+        '[_roomUserStreamHandler (documentChange)] $changedData',
       );
 
       if (changedData['left'] == true) {
         if (changedData['username'] != widget.user.username) {
           setState(() {
-            _notification = buildNotification(
+            _notification = _buildNotification(
               context,
               '${changedData['username']} has left.',
               Theme.of(context).primaryColorLight,
@@ -151,7 +177,7 @@ class ChatPageState extends State<ChatPage> {
       } else {
         if (changedData['username'] != widget.user.username) {
           setState(() {
-            _notification = buildNotification(
+            _notification = _buildNotification(
               context,
               '${changedData['username']} has joined.',
               Theme.of(context).primaryColorDark,
@@ -162,19 +188,69 @@ class ChatPageState extends State<ChatPage> {
     });
   }
 
-  void leaveRoom() {
-    print('[leaveRoom]');
-    markUserAsLeft();
+  @override
+  void dispose() {
+    print('[dispose (ChatPage)]');
+    _chastSubscription.cancel();
+    _roomUserSubscription.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print('[build (ChatPage)]');
+
+    return WillPopScope(
+      onWillPop: () {
+        _leaveRoom();
+        Navigator.of(context).pop();
+        return Future.value(false);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            "HChat: ${widget.roomID}",
+            style: Theme.of(context).textTheme.subhead,
+          ),
+          elevation:
+              Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
+        ),
+        body: Column(
+          children: <Widget>[
+            _notification,
+            Flexible(
+              child: ListView.builder(
+                reverse: true,
+                itemBuilder: (_, int index) {
+                  return _buildChatMessage(_chats[index]);
+                },
+                itemCount: _chats.length,
+              ),
+            ),
+            Divider(height: 1.0),
+            Container(
+              decoration: BoxDecoration(color: Theme.of(context).cardColor),
+              child: _mainInput,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _leaveRoom() {
+    print('[_leaveRoom]');
+    _markUserAsLeft();
     if (_chats.isNotEmpty) {
-      updateHistories(widget.roomID, _chats.first);
+      _updateHistories(widget.roomID, _chats.first);
     }
   }
 
-  void markUserAsLeft() async {
-    print('[markUserAsLeft]');
-    Map<String, dynamic> data = {'left': true};
+  void _markUserAsLeft() async {
+    print('[_markUserAsLeft]');
+    final Map<String, dynamic> data = {'left': true};
 
-    QuerySnapshot fbQsRoomUser = await Firestore.instance
+    final QuerySnapshot fbQsRoomUser = await Firestore.instance
         .collection('rooms')
         .document(widget.roomID)
         .collection('users')
@@ -186,8 +262,8 @@ class ChatPageState extends State<ChatPage> {
     });
   }
 
-  void updateHistories(String roomID, Chat lastChat) async {
-    print('[updateHistories]');
+  void _updateHistories(String roomID, Chat lastChat) async {
+    print('[_updateHistories]');
 
     Map<String, dynamic> data = {
       'roomID': roomID,
@@ -196,9 +272,9 @@ class ChatPageState extends State<ChatPage> {
       'lastChatPartnerName': lastChat.partnerName,
       'lastChatCreatedAt': lastChat.createdAt,
     };
-    String userID = widget.user.id;
+    final String userID = widget.user.id;
 
-    QuerySnapshot fbHistories = await Firestore.instance
+    final QuerySnapshot fbHistories = await Firestore.instance
         .collection('histories')
         .where('roomID', isEqualTo: roomID)
         .getDocuments();
@@ -216,7 +292,42 @@ class ChatPageState extends State<ChatPage> {
     }
   }
 
-  void setUserLocation() async {
+  Widget _buildChatMessage(Chat chat) {
+    Widget message = chat.isImageChat()
+        ? ChatImage(imageUrl: chat.imageUrl)
+        : ChatText(text: chat.text);
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.0),
+      child: ChatMessage(
+        createdAt: chat.createdAt,
+        username: chat.username,
+        message: message,
+        myMessage: (chat.userID == widget.user.id),
+      ),
+    );
+  }
+
+  Widget _buildNotification(
+    BuildContext context,
+    String message,
+    Color bgColor,
+  ) {
+    return Container(
+      color: bgColor,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            message,
+            style: TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _setUserLocation() async {
     final geoloc.Location location = geoloc.Location();
     try {
       final Map<String, double> currentLocation = await location.getLocation();
@@ -241,113 +352,5 @@ class ChatPageState extends State<ChatPage> {
         },
       );
     }
-  }
-
-  @override
-  void dispose() {
-    print('[dispose (ChatPage)]');
-    _chastSubscription.cancel();
-    _roomUserSubscription.cancel();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    print('[initState (ChatPage)]');
-    super.initState();
-
-    setUserLocation();
-    _chastSubscription = Firestore.instance
-        .collection('rooms')
-        .document(widget.roomID)
-        .collection('chats')
-        .snapshots()
-        .listen(chatStreamHandler);
-
-    _roomUserSubscription = Firestore.instance
-        .collection('rooms')
-        .document(widget.roomID)
-        .collection('users')
-        .snapshots()
-        .listen(roomUserStreamHandler);
-
-    _mainInput = MainInput(
-      chatInputHandler: chatInputHandler,
-      imageHandler: imageHandler,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    print('[build (ChatPage)]');
-
-    return WillPopScope(
-      onWillPop: () {
-        leaveRoom();
-        Navigator.of(context).pop();
-        return Future.value(false);
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "HChat: ${widget.roomID}",
-            style: Theme.of(context).textTheme.subhead,
-          ),
-          elevation:
-              Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
-        ),
-        body: Column(
-          children: <Widget>[
-            _notification,
-            Flexible(
-              child: ListView.builder(
-                reverse: true,
-                itemBuilder: (_, int index) {
-                  return buildChatMessage(_chats[index]);
-                },
-                itemCount: _chats.length,
-              ),
-            ),
-            Divider(height: 1.0),
-            Container(
-              decoration: BoxDecoration(color: Theme.of(context).cardColor),
-              child: _mainInput,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildChatMessage(Chat chat) {
-    Widget message = chat.isImageChat()
-        ? ChatImage(imageUrl: chat.imageUrl)
-        : ChatText(text: chat.text);
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.0),
-      child: ChatMessage(
-        createdAt: chat.createdAt,
-        username: chat.username,
-        message: message,
-        myMessage: (chat.userID == widget.user.id),
-      ),
-    );
-  }
-
-  Widget buildNotification(
-      BuildContext context, String message, Color bgColor) {
-    return Container(
-      color: bgColor,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text(
-            message,
-            style: TextStyle(color: Colors.white),
-          ),
-        ],
-      ),
-    );
   }
 }
