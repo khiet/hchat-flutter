@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class ChatImage extends StatelessWidget {
   final String imageUrl;
 
-  ChatImage({this.imageUrl});
+  ChatImage({@required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {

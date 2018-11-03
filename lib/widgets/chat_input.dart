@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 class ChatInput extends StatefulWidget {
   final Function onSubmitted;
 
-  ChatInput({this.onSubmitted});
+  ChatInput({@required this.onSubmitted});
 
   @override
   State<StatefulWidget> createState() {

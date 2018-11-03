@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'chat_input.dart';
 
 class MainInput extends StatefulWidget {
-  MainInput({this.chatInputHandler, this.imageHandler});
+  MainInput({@required this.chatInputHandler, @required this.imageHandler});
   final Function chatInputHandler;
   final Function imageHandler;
 
