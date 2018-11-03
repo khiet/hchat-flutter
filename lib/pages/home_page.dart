@@ -48,7 +48,7 @@ class HomePageState extends State<HomePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Text(
-            'Your name is ${user.username}',
+            'Your name is ${user?.username}',
             style: Theme.of(context).textTheme.title,
           ),
           Row(
@@ -195,31 +195,33 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget _buildResetUser() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Column(
-          children: <Widget>[
-            Container(
-              margin: EdgeInsets.only(top: 20.0),
-              child: FlatButton(
-                color: Theme.of(context).accentColor,
-                textColor: Colors.white,
-                child: Text('CLEAR USER ID'),
-                onPressed: _resetUser,
+    return (user != null)
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Column(
+                children: <Widget>[
+                  Container(
+                    margin: EdgeInsets.only(top: 20.0),
+                    child: FlatButton(
+                      color: Theme.of(context).accentColor,
+                      textColor: Colors.white,
+                      child: Text('CLEAR USER ID'),
+                      onPressed: _resetUser,
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 20.0),
+                    child: Text(user?.id),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 20.0),
+                    child: Text(user?.username),
+                  ),
+                ],
               ),
-            ),
-            Container(
-              margin: EdgeInsets.only(top: 20.0),
-              child: Text(user.id),
-            ),
-            Container(
-              margin: EdgeInsets.only(top: 20.0),
-              child: Text(user.username),
-            ),
-          ],
-        ),
-      ],
-    );
+            ],
+          )
+        : Container();
   }
 }

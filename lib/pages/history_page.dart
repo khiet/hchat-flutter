@@ -30,8 +30,8 @@ class HistoryPageState extends State<HistoryPage> {
   void _fetchChatHistory() async {
     user = await User.findOrCreate();
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String userID = prefs.get('userID');
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String userID = prefs.get('userID');
 
     _historySubscription = Firestore.instance
         .collection('histories')
@@ -41,7 +41,7 @@ class HistoryPageState extends State<HistoryPage> {
   }
 
   void _historyStreamHandler(QuerySnapshot snapshot) {
-    List<ChatHistory> fetchedChatHistories = [];
+    final List<ChatHistory> fetchedChatHistories = [];
 
     for (DocumentSnapshot history in snapshot.documents) {
       fetchedChatHistories.insert(
