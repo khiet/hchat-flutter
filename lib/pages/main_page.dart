@@ -101,8 +101,6 @@ class MainPageState extends State<MainPage> {
 
   void _setupFCM() async {
     final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
-    String token = await _firebaseMessaging.getToken();
-    print('[_setupFCM] $token');
 
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {

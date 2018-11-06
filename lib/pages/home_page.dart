@@ -116,9 +116,12 @@ class HomePageState extends State<HomePage> {
       roomID = fbRoom.documentID;
 
       await fbRoom.reference.updateData({'connected': true});
-      await fbRoom.reference
-          .collection('users')
-          .add({'username': user.username, 'left': false, 'userID': user.id});
+      await fbRoom.reference.collection('users').add({
+        'username': user.username,
+        'left': false,
+        'userID': user.id,
+        'userFmcToken': user.fcmToken
+      });
 
       print('[JOINED ROOM] $roomID');
       _hideActivityIndicator();
@@ -138,18 +141,21 @@ class HomePageState extends State<HomePage> {
       'userID': user.id,
       'dead': false
     };
-    final DocumentReference fbRoom =
+    final DocumentReference fbDrRoom =
         await Firestore.instance.collection('rooms').add(data);
-    await fbRoom
-        .collection('users')
-        .add({'username': user.username, 'left': false, 'userID': user.id});
-    roomID = fbRoom.documentID;
+    await fbDrRoom.collection('users').add({
+      'username': user.username,
+      'left': false,
+      'userID': user.id,
+      'userFmcToken': user.fcmToken
+    });
+    roomID = fbDrRoom.documentID;
     print('[CREATED ROOM] $roomID');
 
     final Timer findUserTimer =
-        Timer(findUserDuration, () => _cancelByUserNotFound(fbRoom));
+        Timer(findUserDuration, () => _cancelByUserNotFound(fbDrRoom));
 
-    fbRoom.snapshots().listen((DocumentSnapshot snapshot) {
+    fbDrRoom.snapshots().listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data['connected']) {
         findUserTimer.cancel();
         _hideActivityIndicator();
