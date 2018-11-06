@@ -39,7 +39,8 @@ class ChatPageState extends State<ChatPage> {
   StreamSubscription<QuerySnapshot> _chastSubscription;
   StreamSubscription<QuerySnapshot> _roomUserSubscription;
   MainInput _mainInput;
-  Widget _notification = Container();
+  Widget _roomNotification = Container();
+  bool _requireMessageNotification = false;
   String _partnerName;
 
   @override
@@ -90,20 +91,21 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void _chatInputHandler(String text) {
-    _setDataFirestore({'text': text});
+    _createChat({'text': text});
   }
 
   void _imageHandler(File image) async {
     final Map<String, dynamic> uploadedData = await _uploadImage(image);
-    _setDataFirestore({'imageUrl': uploadedData['imageUrl']});
+    _createChat({'imageUrl': uploadedData['imageUrl']});
   }
 
-  void _setDataFirestore(Map<String, dynamic> data) {
+  void _createChat(Map<String, dynamic> data) {
     Map<String, dynamic> defaultData = {
       'userID': widget.user.id,
       'username': widget.user.username,
       'partnerName': _partnerName,
-      'createdAt': FieldValue.serverTimestamp()
+      'createdAt': FieldValue.serverTimestamp(),
+      'requireMessageNotification': _requireMessageNotification,
     };
 
     data.addAll(defaultData);
@@ -166,8 +168,9 @@ class ChatPageState extends State<ChatPage> {
 
       if (changedData['left'] == true) {
         if (changedData['username'] != widget.user.username) {
+          _requireMessageNotification = true;
           setState(() {
-            _notification = _buildNotification(
+            _roomNotification = _buildRoomNotification(
               context,
               '${changedData['username']} has left.',
               Theme.of(context).primaryColorLight,
@@ -176,8 +179,9 @@ class ChatPageState extends State<ChatPage> {
         }
       } else {
         if (changedData['username'] != widget.user.username) {
+          _requireMessageNotification = false;
           setState(() {
-            _notification = _buildNotification(
+            _roomNotification = _buildRoomNotification(
               context,
               '${changedData['username']} has joined.',
               Theme.of(context).primaryColorDark,
@@ -217,7 +221,7 @@ class ChatPageState extends State<ChatPage> {
         ),
         body: Column(
           children: <Widget>[
-            _notification,
+            _roomNotification,
             Flexible(
               child: ListView.builder(
                 reverse: true,
@@ -308,7 +312,7 @@ class ChatPageState extends State<ChatPage> {
     );
   }
 
-  Widget _buildNotification(
+  Widget _buildRoomNotification(
     BuildContext context,
     String message,
     Color bgColor,

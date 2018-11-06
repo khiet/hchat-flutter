@@ -1,28 +1,18 @@
 const functions = require('firebase-functions');
 
-const cors = require('cors')({ origin: true });
+const admin = require('firebase-admin');
+admin.initializeApp();
+
+const gcs = require('@google-cloud/storage');
+const cors = require('cors');
 const Busboy = require('busboy');
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
-const fbAdmin = require('firebase-admin');
 const uuid = require('uuid/v4');
 
-const gcconfig = {
-  projectId: 'hchat-app',
-  keyFilename: 'hchat-app-firebase-adminsdk.json'
-};
-
-const gcs = require('@google-cloud/storage')(gcconfig);
-
-fbAdmin.initializeApp({
-  credential: fbAdmin.credential.cert(
-    require('./hchat-app-firebase-adminsdk.json')
-  )
-});
-
 exports.storeImage = functions.https.onRequest((req, res) => {
-  return cors(req, res, () => {
+  return cors({ origin: true })(req, res, () => {
     if (req.method !== 'POST') {
       return res.status(500).json({ message: 'Internal Server Error' });
     }
@@ -46,7 +36,7 @@ exports.storeImage = functions.https.onRequest((req, res) => {
     });
 
     busboy.on('finish', () => {
-      const bucket = gcs.bucket('hchat-app.appspot.com');
+      const bucket = gcs().bucket('hchat-app.appspot.com');
       const downloadToken = uuid();
       let imagePath = 'images/' + downloadToken + '-' + uploadData.name;
       if (oldImagePath) {
@@ -75,6 +65,10 @@ exports.storeImage = functions.https.onRequest((req, res) => {
         });
       });
     });
+
+    // https://stackoverflow.com/questions/47327777/firebase-functions-returns-and-promises-do-not-exit-the-function
+    // Cloud Functions triggered by HTTP requests need to be terminated by ending them with
+    // a send(), redirect(), or end(), otherwise they will continue running and reach the timeout.
     return busboy.end(req.rawBody);
   });
 });
