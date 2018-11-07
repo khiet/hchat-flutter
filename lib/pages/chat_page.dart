@@ -36,11 +36,10 @@ class ChatPage extends StatefulWidget {
 
 class ChatPageState extends State<ChatPage> {
   List<Chat> _chats = [];
-  StreamSubscription<QuerySnapshot> _chastSubscription;
+  StreamSubscription<QuerySnapshot> _chatSubscription;
   StreamSubscription<QuerySnapshot> _roomUserSubscription;
   MainInput _mainInput;
   Widget _roomNotification = Container();
-  bool _requireMessageNotification = false;
   String _partnerName;
 
   @override
@@ -49,7 +48,7 @@ class ChatPageState extends State<ChatPage> {
     super.initState();
 
     _setUserLocation();
-    _chastSubscription = Firestore.instance
+    _chatSubscription = Firestore.instance
         .collection('rooms')
         .document(widget.roomID)
         .collection('chats')
@@ -105,7 +104,6 @@ class ChatPageState extends State<ChatPage> {
       'username': widget.user.username,
       'partnerName': _partnerName,
       'createdAt': FieldValue.serverTimestamp(),
-      'requireMessageNotification': _requireMessageNotification,
     };
 
     data.addAll(defaultData);
@@ -168,7 +166,6 @@ class ChatPageState extends State<ChatPage> {
 
       if (changedData['left'] == true) {
         if (changedData['username'] != widget.user.username) {
-          _requireMessageNotification = true;
           setState(() {
             _roomNotification = _buildRoomNotification(
               context,
@@ -179,7 +176,6 @@ class ChatPageState extends State<ChatPage> {
         }
       } else {
         if (changedData['username'] != widget.user.username) {
-          _requireMessageNotification = false;
           setState(() {
             _roomNotification = _buildRoomNotification(
               context,
@@ -195,7 +191,7 @@ class ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     print('[dispose (ChatPage)]');
-    _chastSubscription.cancel();
+    _chatSubscription.cancel();
     _roomUserSubscription.cancel();
     super.dispose();
   }
@@ -245,9 +241,6 @@ class ChatPageState extends State<ChatPage> {
   void _leaveRoom() {
     print('[_leaveRoom]');
     _markUserAsLeft();
-    if (_chats.isNotEmpty) {
-      _updateHistories(widget.roomID, _chats.first);
-    }
   }
 
   void _markUserAsLeft() async {
@@ -264,36 +257,6 @@ class ChatPageState extends State<ChatPage> {
     fbQsRoomUser.documents.forEach((DocumentSnapshot user) {
       user.reference.updateData(data);
     });
-  }
-
-  void _updateHistories(String roomID, Chat lastChat) async {
-    print('[_updateHistories]');
-
-    Map<String, dynamic> data = {
-      'roomID': roomID,
-      'lastChatPreviewText': lastChat.previewText(),
-      'lastChatUsername': lastChat.username,
-      'lastChatPartnerName': lastChat.partnerName,
-      'lastChatCreatedAt': lastChat.createdAt,
-    };
-    final String userID = widget.user.id;
-
-    final QuerySnapshot fbHistories = await Firestore.instance
-        .collection('histories')
-        .where('roomID', isEqualTo: roomID)
-        .getDocuments();
-
-    if (fbHistories.documents.isEmpty) {
-      data['userIDs'] = [userID];
-      Firestore.instance.collection('histories').add(data);
-    } else {
-      List<dynamic> userIDs = fbHistories.documents.first['userIDs'];
-      if (!userIDs.contains(userID)) {
-        data['userIDs'] = List.from(userIDs)..add(userID);
-      }
-
-      fbHistories.documents.first.reference.updateData(data);
-    }
   }
 
   Widget _buildChatMessage(Chat chat) {
