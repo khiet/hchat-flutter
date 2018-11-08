@@ -70,20 +70,39 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void _chatStreamHandler(QuerySnapshot snapshot) {
+    print('[_chatStreamHandler]');
     final List<Chat> newChats = [];
-    for (DocumentSnapshot document in snapshot.documents) {
-      newChats.insert(
-        0,
-        Chat(
-          text: document['text'],
-          imageUrl: document['imageUrl'],
-          username: document['username'],
-          partnerName: document['partnerName'],
-          createdAt: document['createdAt'],
-          userID: document['userID'],
-        ),
-      );
+    if (_chats.isNotEmpty) {
+      newChats.addAll(_chats);
     }
+
+    final WriteBatch batch = Firestore.instance.batch();
+    snapshot.documentChanges.forEach((documentChange) {
+      final DocumentSnapshot changedDocument = documentChange.document;
+      print('[documentChange] ${changedDocument.data}');
+
+      if (changedDocument['read'] == false &&
+          changedDocument['userID'] != widget.user.id) {
+        batch.updateData(changedDocument.reference, {'read': true});
+      }
+
+      if (changedDocument['createdAt'] != null) {
+        newChats.insert(
+          0,
+          Chat(
+            text: changedDocument['text'],
+            imageUrl: changedDocument['imageUrl'],
+            username: changedDocument['username'],
+            partnerName: changedDocument['partnerName'],
+            createdAt: changedDocument['createdAt'],
+            userID: changedDocument['userID'],
+            read: changedDocument['read'],
+          ),
+        );
+      }
+    });
+
+    batch.commit();
 
     setState(() {
       _chats = newChats;
@@ -106,6 +125,7 @@ class ChatPageState extends State<ChatPage> {
       'partnerName': _partnerName,
       'partnerID': _partnerID,
       'createdAt': FieldValue.serverTimestamp(),
+      'read': false,
     };
 
     data.addAll(defaultData);

@@ -8,6 +8,7 @@ class Chat {
     @required this.partnerName,
     @required this.createdAt,
     @required this.userID,
+    this.read = false,
   });
 
   final String text;
@@ -16,10 +17,7 @@ class Chat {
   final String partnerName;
   final DateTime createdAt;
   final String userID;
-
-  String previewText() {
-    return isImageChat() ? '$username sent an image.' : text;
-  }
+  final bool read;
 
   bool isImageChat() => (imageUrl != null);
 }
