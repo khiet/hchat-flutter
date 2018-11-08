@@ -26,10 +26,11 @@ exports.writeHistory = functions.firestore
       createdChat['createdAt']['_seconds'],
       createdChat['createdAt']['_nanoseconds']
     );
-
+    const chatPreviewText = createdChat['text'] ? createdChat['text'] : createdChat['username'] + ' sent an image.';
+    console.log('chatPreviewText: ' + chatPreviewText);
     const historyData = {
       'roomID': roomID,
-      'lastChatPreviewText': createdChat['text'],
+      'lastChatPreviewText': chatPreviewText,
       'lastChatUsername': createdChat['username'],
       'lastChatPartnerName': createdChat['partnerName'],
       'lastChatCreatedAt': chatCreatedAt,
