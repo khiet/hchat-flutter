@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class Chat {
   Chat({
+    @required this.id,
     @required this.text,
     @required this.imageUrl,
     @required this.username,
@@ -11,6 +12,7 @@ class Chat {
     this.read = false,
   });
 
+  final String id;
   final String text;
   final String imageUrl;
   final String username;

@@ -4,12 +4,14 @@ class ChatMessage extends StatelessWidget {
   ChatMessage({
     @required this.message,
     @required this.username,
+    @required this.read,
     @required this.createdAt,
     @required this.myMessage,
   });
 
   final Widget message;
   final String username;
+  final bool read;
   final DateTime createdAt;
   final bool myMessage;
 
@@ -69,6 +71,10 @@ class ChatMessage extends StatelessWidget {
               Container(
                 margin: EdgeInsets.only(top: 10.0),
                 child: message,
+              ),
+              Text(
+                read ? 'Read' : 'Unread',
+                style: TextStyle(color: Colors.purple),
               ),
             ],
           ),
