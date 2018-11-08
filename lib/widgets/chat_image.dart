@@ -7,15 +7,15 @@ class ChatImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 100.0,
-      height: 100.0,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: NetworkImage(imageUrl),
-          fit: BoxFit.cover,
-        ),
-        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+    return ClipRRect(
+      borderRadius: new BorderRadius.circular(8.0),
+      child: FadeInImage.assetNetwork(
+        width: 100.0,
+        height: 100.0,
+        placeholder: 'assets/placeholder.png',
+        image: imageUrl,
+        fadeInDuration: Duration(milliseconds: 400),
+        fit: BoxFit.cover,
       ),
     );
   }
