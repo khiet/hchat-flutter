@@ -11,6 +11,45 @@ const path = require('path');
 const fs = require('fs');
 const uuid = require('uuid/v4');
 
+const FirebaseFirestore = require('@google-cloud/firestore');
+
+exports.writeHistory = functions.firestore
+  .document('rooms/{roomID}/chats/{chatID}')
+  .onCreate((snapshot, context) => {
+    const firestore = new FirebaseFirestore.Firestore();
+
+    // 1. extract roomID from Chat
+    const roomID = context.params.roomID;
+    // 2. construct history from Chat
+    const createdChat = snapshot.data();
+    const chatCreatedAt = new FirebaseFirestore.Timestamp(
+      createdChat['createdAt']['_seconds'],
+      createdChat['createdAt']['_nanoseconds']
+    );
+
+    const historyData = {
+      'roomID': roomID,
+      'lastChatPreviewText': createdChat['text'],
+      'lastChatUsername': createdChat['username'],
+      'lastChatPartnerName': createdChat['partnerName'],
+      'lastChatCreatedAt': chatCreatedAt,
+      'userIDs': [createdChat['userID'], createdChat['partnerID']]
+    };
+
+    const historyPromise = firestore.collection('histories')
+      .where('roomID', '==', roomID)
+      .get()
+      .then(historyQs => {
+        if (historyQs.empty) {
+          return firestore.collection('histories').add(historyData);
+        } else {
+          return historyQs.docs[0].ref.set(historyData);
+        }
+      });
+
+    return Promise.all([historyPromise]);
+  });
+
 exports.storeImage = functions.https.onRequest((req, res) => {
   return cors({ origin: true })(req, res, () => {
     if (req.method !== 'POST') {

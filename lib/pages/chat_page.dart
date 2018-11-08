@@ -41,6 +41,7 @@ class ChatPageState extends State<ChatPage> {
   MainInput _mainInput;
   Widget _roomNotification = Container();
   String _partnerName;
+  String _partnerID;
 
   @override
   void initState() {
@@ -103,6 +104,7 @@ class ChatPageState extends State<ChatPage> {
       'userID': widget.user.id,
       'username': widget.user.username,
       'partnerName': _partnerName,
+      'partnerID': _partnerID,
       'createdAt': FieldValue.serverTimestamp(),
     };
 
@@ -151,11 +153,14 @@ class ChatPageState extends State<ChatPage> {
   void _roomUserStreamHandler(QuerySnapshot snapshot) {
     snapshot.documents.forEach((DocumentSnapshot document) {
       print('[_roomUserStreamHandler] ${document.data}');
-      if (_partnerName == null && (document['userID'] != widget.user.id)) {
+      if ((_partnerName == null || _partnerID == null) &&
+          (document['userID'] != widget.user.id)) {
         _partnerName = document['username'];
+        _partnerID = document['userID'];
       }
 
       print('[_partnerName] $_partnerName');
+      print('[_partnerID] $_partnerID');
     });
 
     snapshot.documentChanges.forEach((DocumentChange documentChange) {
