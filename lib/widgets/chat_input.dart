@@ -76,6 +76,8 @@ class ChatInputState extends State<ChatInput> {
             _isSubmittable = text.trim().isNotEmpty;
           });
         },
+        // https://github.com/flutter/flutter/issues/22201
+        autocorrect: false,
         onSubmitted: (String text) {
           print('[buildTextField] (onSubmitted) $text');
           _handleSubmitted(text);
