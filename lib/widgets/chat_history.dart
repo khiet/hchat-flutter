@@ -24,33 +24,32 @@ class ChatHistory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print('[build (ChatHistory)]');
-    return Container(
-      child: GestureDetector(
-        onTap: () => _goToChatPage(context),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Container(
-              margin: EdgeInsets.only(right: 10.0),
-              child: CircleAvatar(child: Text(partnerName[0])),
+    return GestureDetector(
+      onTap: () => _goToChatPage(context),
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            margin: EdgeInsets.only(right: 10.0),
+            child: CircleAvatar(child: Text(partnerName[0])),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  DateFormat.yMMMd().format(createdAt),
+                  style: Theme.of(context).textTheme.caption,
+                ),
+                Container(
+                  margin: EdgeInsets.only(top: 10.0),
+                  child: Text(_displayPreviewText(previewText)),
+                ),
+              ],
             ),
-            Flexible(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    DateFormat.yMMMd().format(createdAt),
-                    style: Theme.of(context).textTheme.caption,
-                  ),
-                  Container(
-                    margin: EdgeInsets.only(top: 10.0),
-                    child: Text(_displayPreviewText(previewText)),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
