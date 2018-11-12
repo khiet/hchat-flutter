@@ -253,6 +253,7 @@ class ChatPageState extends State<ChatPage> {
 
     return WillPopScope(
       onWillPop: () {
+        // this will prevent swipe back: https://github.com/flutter/flutter/issues/14203
         _leaveRoom();
         Navigator.of(context).pop();
         return Future.value(false);
