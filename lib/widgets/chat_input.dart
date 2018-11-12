@@ -53,13 +53,21 @@ class ChatInputState extends State<ChatInput> {
           ? CupertinoButton(
               child: Text("Send"),
               onPressed: _isSubmittable
-                  ? () => _handleSubmitted(_textController.text)
+                  ? () {
+                      _handleSubmitted(_textController.text);
+                      // dismiss keyboard
+                      FocusScope.of(context).requestFocus(FocusNode());
+                    }
                   : null,
             )
           : IconButton(
               icon: Icon(Icons.send),
               onPressed: _isSubmittable
-                  ? () => _handleSubmitted(_textController.text)
+                  ? () {
+                      _handleSubmitted(_textController.text);
+                      // dismiss keyboard
+                      FocusScope.of(context).requestFocus(FocusNode());
+                    }
                   : null,
             ),
     );
