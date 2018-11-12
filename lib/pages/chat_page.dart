@@ -34,7 +34,7 @@ class ChatPage extends StatefulWidget {
   }
 }
 
-class ChatPageState extends State<ChatPage> {
+class ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   List<Chat> _chats = [];
   StreamSubscription<QuerySnapshot> _chatSubscription;
   StreamSubscription<QuerySnapshot> _roomUserSubscription;
@@ -44,9 +44,32 @@ class ChatPageState extends State<ChatPage> {
   String _partnerID;
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print('[ChagePage (didChangeAppLifecycleState)] $state');
+
+    if (state == AppLifecycleState.inactive) {
+      _leaveRoom();
+    } else if (state == AppLifecycleState.resumed) {
+      _joinRoom();
+    }
+  }
+
+  void _joinRoom() async {
+    final QuerySnapshot fbQsRoomUser = await Firestore.instance
+        .collection('rooms')
+        .document(widget.roomID)
+        .collection('users')
+        .where('userID', isEqualTo: widget.user.id)
+        .getDocuments();
+
+    fbQsRoomUser.documents[0].reference.updateData({'left': false});
+  }
+
+  @override
   void initState() {
     print('[initState (ChatPage)]');
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _setUserLocation();
     _chatSubscription = Firestore.instance
@@ -244,6 +267,7 @@ class ChatPageState extends State<ChatPage> {
     print('[dispose (ChatPage)]');
     _chatSubscription.cancel();
     _roomUserSubscription.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
