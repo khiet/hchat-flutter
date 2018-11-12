@@ -133,7 +133,10 @@ class ChatPageState extends State<ChatPage> {
 
   void _imageHandler(File image) async {
     final Map<String, dynamic> uploadedData = await _uploadImage(image);
-    _createChat({'imageUrl': uploadedData['imageUrl']});
+
+    if (uploadedData != null) {
+      _createChat({'imageUrl': uploadedData['imageUrl']});
+    }
   }
 
   void _createChat(Map<String, dynamic> data) {
@@ -156,6 +159,11 @@ class ChatPageState extends State<ChatPage> {
   }
 
   Future<Map<String, dynamic>> _uploadImage(File image) async {
+    if (image == null) {
+      // image was not picked
+      return null;
+    }
+
     final List<String> mimeTypeData = lookupMimeType(image.path).split('/');
     final file = await http.MultipartFile.fromPath(
       'image',
