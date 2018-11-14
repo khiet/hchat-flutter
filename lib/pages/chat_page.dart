@@ -43,13 +43,20 @@ class ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   String _partnerName;
   String _partnerID;
 
+  bool _pickingImage = false;
+
+  void _updatePickingImage(bool imagePicked) {
+    _pickingImage = imagePicked;
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     print('[ChagePage (didChangeAppLifecycleState)] $state');
 
-    if (state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.inactive && !_pickingImage) {
       _leaveRoom();
     } else if (state == AppLifecycleState.resumed) {
+      _pickingImage = false;
       _joinRoom();
     }
   }
@@ -89,6 +96,7 @@ class ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     _mainInput = MainInput(
       chatInputHandler: _chatInputHandler,
       imageHandler: _imageHandler,
+      onPickImag: _updatePickingImage,
     );
   }
 
@@ -156,7 +164,6 @@ class ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
 
   void _imageHandler(File image) async {
     final Map<String, dynamic> uploadedData = await _uploadImage(image);
-
     if (uploadedData != null) {
       _createChat({'imageUrl': uploadedData['imageUrl']});
     }
