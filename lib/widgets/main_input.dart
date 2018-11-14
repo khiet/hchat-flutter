@@ -6,9 +6,13 @@ import 'package:image_picker/image_picker.dart';
 import 'chat_input.dart';
 
 class MainInput extends StatefulWidget {
-  MainInput({@required this.chatInputHandler, @required this.imageHandler});
+  MainInput(
+      {@required this.chatInputHandler,
+      @required this.imageHandler,
+      this.onPickImag});
   final Function chatInputHandler;
   final Function imageHandler;
+  final Function onPickImag;
 
   @override
   State<StatefulWidget> createState() {
@@ -29,6 +33,8 @@ class MainInputState extends State<MainInput> {
   }
 
   Future<void> pickImage(ImageSource source) async {
+    widget.onPickImag(true);
+
     File image = await ImagePicker.pickImage(
       source: source,
       maxWidth: maxImageWidth,
