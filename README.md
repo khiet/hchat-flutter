@@ -1,3 +1,3 @@
-# friendlychat
+# hchat flutter
 
-A demo Flutter project ["Building Beautiful UIs with Flutter"](https://codelabs.developers.google.com/codelabs/flutter/index.html)
+A project inspired by ["hchat"](https://github.com/khiet/hchat)
