@@ -1,4 +1,4 @@
-package com.example.friendlychat;
+package co.uk.khiet.hchat;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

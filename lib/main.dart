@@ -4,10 +4,10 @@ import 'pages/main_page.dart';
 import 'shared/adaptive_theme.dart';
 
 void main() {
-  runApp(FriendlychatApp());
+  runApp(HchatApp());
 }
 
-class FriendlychatApp extends StatelessWidget {
+class HchatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
